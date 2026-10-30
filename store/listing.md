@@ -19,9 +19,18 @@ Chrome Web Store 与 Edge Add-ons 共用以下文案。提交前把占位符换�
 ```
 人类打字模拟器把文字按设定节奏逐字输入到你选择的网页输入框里，适合长文录入、录制演示、批量填写自己表单等场景。
 
+完全免费
+没有付费版、没有内购、没有广告，也不需要注册账号。
+
 两种节奏
 · 常规节奏：在设定间隔内逐字随机输入，可叠加标点停顿、节奏波动和单字错字纠正。
 · 边想边打：先按段落、句子、分句切分文字，再规划成一串输入步骤，在分句与句末停下构思，成段输出，走到词或分句边界时会回删几个字重写，打错了也可能过几个字才纠正。
+
+时长和参数自己定
+所有参数都是滑动条：书写速度、构思强度、回改频率、单次回改上限、错字概率、延迟发现概率、走神停顿概率。拖动时每条下方实时显示它在当前文字上会产生几次、耗时多少。开启「总时长预算」后，可以指定整段文字大约用多久打完（10 秒～120 分钟）。常规节奏另有慢速仔细、日常输入、熟练快打三组预设。
+
+自动清理隐藏字符
+开始前自动清除粘贴文字里看不见的字符：零宽字符、BOM、方向控制符、控制字符、私用区字符等，制表符和特殊空格统一成普通空格。清理结果会写回文本框，开始前可以检查。
 
 进度按时间显示
 按钮下方的进度条显示已完成百分比与剩余时间，精确到小数点后两位。边想边打使用计划中的真实等待时间，构思停顿期间也会持续减少。
@@ -47,9 +56,18 @@ Google 文档
 ```
 Human Typer types text into the web field you pick, character by character, at a rhythm you choose. It suits long-form entry, screen recordings and filling in your own forms.
 
+Completely free
+No paid tier, no in-app purchases, no ads, no account needed.
+
 Two rhythms
 · Fixed rhythm: characters go in at a randomised interval, optionally with pauses on punctuation, rhythm drift and single-character typo fixes.
 · Think-as-you-type: the text is split by paragraph, sentence and clause, then planned as a sequence of steps. The run pauses to compose at clause and sentence ends, types in bursts, and now and then backspaces a few characters to rewrite. Typos can survive a few characters before being noticed.
+
+Your duration, your settings
+Every setting is a slider: typing speed, thinking intensity, revision rate, max rewrite length, typo chance, late-notice chance and spacing-out chance. While you drag, each slider shows how often it fires on the current text and how much time it adds. Turn on the duration budget to have the whole text finish in roughly the time you choose (10 seconds to 120 minutes). Fixed rhythm also has three presets: careful, everyday and fast.
+
+Hidden characters cleaned automatically
+Before typing, invisible characters in pasted text are removed: zero-width characters, BOMs, direction marks, control and private-use characters. Tabs and special spaces become plain spaces. The cleaned text is written back to the box so you can check it first.
 
 Time-based progress
 The bar under the buttons shows the completed percentage and the time left, to two decimals. Think-as-you-type uses the real waits from its plan, so the reading keeps moving during a composing pause.
