@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>人类打字模拟器 · 隐私政策</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { max-width: 760px; margin: 48px auto; padding: 0 20px; font: 16px/1.75 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; }
+  h1 { font-size: 26px; margin-bottom: 4px; }
+  h2 { font-size: 18px; margin-top: 32px; }
+  .meta { color: #6b7280; font-size: 14px; margin-top: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+  th, td { border: 1px solid #dbe1ea; padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #f3f6fb; }
+  code { background: #f3f6fb; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>人类打字模拟器 · 隐私政策</h1>
+<p class="meta">最后更新：2026-10-26</p>
+
+<p>本扩展在你的浏览器本地运行，不收集、不上传、不共享任何数据。</p>
+
+<h2>处理哪些数据</h2>
+<table>
+<tr><th>数据</th><th>存放位置</th><th>用途</th><th>是否离开本机</th></tr>
+<tr><td>侧边栏填写的文字</td><td>扩展本地存储</td><td>关闭面板后继续编辑</td><td>否</td></tr>
+<tr><td>节奏参数与模式</td><td>扩展本地存储</td><td>记住设置</td><td>否</td></tr>
+<tr><td>Google 文档续打记录（文档地址、上次发送的文字、已发送字数）</td><td>扩展本地存储</td><td>下次对同一文档续打</td><td>否</td></tr>
+<tr><td>输入框光标前后的文本</td><td>内存</td><td>点击开始时判断是否已输入过开头</td><td>否</td></tr>
+</table>
+<p>本扩展不读取网页整体内容，不读取浏览历史、书签、Cookie 或密码，不记录键盘输入，不包含分析或广告代码。</p>
+
+<h2>网络访问</h2>
+<p>本扩展不发出任何网络请求，没有服务器端组件，也没有第三方依赖。所有逻辑都由随扩展一同分发的本地 JavaScript 执行，不加载远程代码。</p>
+
+<h2>权限说明</h2>
+<ul>
+<li><code>activeTab</code>、<code>scripting</code>：用户点击「选择网页输入框」后，把输入引擎注入所选标签页及其 iframe。</li>
+<li><code>sidePanel</code>：使用浏览器原生侧边栏作为控制面板。</li>
+<li><code>&lt;all_urls&gt;</code>：允许在任意网站与跨域 iframe 中定位用户点击的输入框。</li>
+<li><code>debugger</code>（可选）：仅在用户主动启用 Google 文档模式时申请，用于向文档逐字发送按键；任务结束、切换标签页或关闭页面时自动断开。</li>
+</ul>
+
+<h2>数据删除</h2>
+<p>清空侧边栏文本框会清除保存的文字草稿；移除本扩展会删除全部本地数据。本扩展没有远端数据。</p>
+
+<h2>变更与联系</h2>
+<p>策略如有变更会更新本页面并随版本发布。联系方式：本项目的 GitHub Issues。</p>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "human-typer",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Browser side panel extension that types text into web fields at a set rhythm",
+  "license": "MIT",
+  "author": "YG",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test": "node tests/i18n.test.cjs && node tests/thinking.test.cjs && node tests/typist.test.cjs && node tests/sanitize.test.cjs && node tests/engine-reload.test.cjs",
+    "pack": "node scripts/pack.mjs",
+    "check": "node scripts/check.mjs"
+  }
+}

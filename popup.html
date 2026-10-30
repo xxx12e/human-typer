@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>人类打字模拟器</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { width: 100%; min-width: 260px; margin: 0; padding: 18px; font: 14px/1.6 system-ui, sans-serif; background: #f5f7fc; color: #19243b; }
+    .appHead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    h1 { font-size: 20px; margin: 0 0 8px; }
+    h2 { font-size: 14px; margin: 14px 0 6px; }
+    p { margin: 8px 0; }
+    textarea { width: 100%; height: 150px; resize: vertical; padding: 10px; }
+    textarea, input, select { border: 1px solid #bdc9db; border-radius: 7px; font: inherit; }
+    select { width: 100%; padding: 8px; background: white; }
+    .option { display: block; margin: 8px 0; }
+    .row { display: flex; gap: 12px; margin: 12px 0; align-items: center; }
+    .row label { flex: 1; }
+    button { padding: 9px 14px; border: 0; border-radius: 7px; font: inherit; cursor: pointer; }
+    #langToggle { flex: none; padding: 4px 10px; font-size: 12px; line-height: 1.4; border-radius: 999px; background: #e0e6ef; color: #19243b; }
+    #start { background: #245ad7; color: white; flex: 1; }
+    #stop { background: #e0e6ef; color: #19243b; }
+    #resumePanel { border-color: #f0c987; background: #fffaf0; }
+    #resumePanel h2 { color: #92400e; }
+    #resumeContinue { background: #245ad7; color: white; flex: 1; }
+    #resumeRestart { background: #e0e6ef; color: #19243b; }
+    #status { min-height: 52px; padding: 12px; border-radius: 8px; background: #e5ebf7; overflow-wrap: anywhere; }
+    .progressRow { display: flex; align-items: center; gap: 8px; margin: 10px 0 8px; }
+    .progressTrack { flex: 1; height: 12px; border-radius: 999px; background: #d7e0f2; overflow: hidden; }
+    .progressFill { width: 0; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #245ad7, #5b93f5); transition: width .25s ease; }
+    .progressFill.active { background: linear-gradient(90deg, #1f7a45, #46b877); }
+    .progressLabel { font-size: 12px; color: #153980; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    #pick { width: 100%; background: #dbe6ff; color: #153980; margin-top: 12px; }
+    #enableDocs { width: 100%; background: #f4e3c2; color: #7c4a03; margin-top: 8px; }
+    #enableDocs[hidden] { display: none; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .hint { color: #50607b; font-size: 12px; }
+    .panel { border: 1px solid #d9e1f0; border-radius: 10px; padding: 4px 12px 10px; margin: 12px 0; background: #fbfcff; }
+    .panel[hidden] { display: none; }
+    .slider { margin: 10px 0; }
+    .sliderHead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+    .sliderHead label { font-size: 13px; }
+    .sliderHead output { font-weight: 600; color: #153980; font-variant-numeric: tabular-nums; }
+    input[type=range] { width: 100%; height: 22px; margin: 2px 0 0; padding: 0; border: 0; background: transparent; accent-color: #245ad7; }
+    .sliderNote { margin: 0; font-size: 12px; color: #50607b; font-variant-numeric: tabular-nums; }
+    #preview { width: 100%; height: 42px; display: block; border-radius: 8px; background: #e5ebf7; }
+    #previewSummary, #classicSummary { font-size: 12px; color: #153980; margin: 6px 0; }
+    .warn { color: #b45309; font-size: 12px; margin: 4px 0; }
+    .warn[hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <div class="appHead">
+    <h1><span data-i18n="app.name">人类打字模拟器</span> <small>1.1.0</small></h1>
+    <button id="langToggle" type="button" data-i18n="app.lang.switch" data-i18n-title="app.lang.title" title="切换界面语言">EN</button>
+  </div>
+  <p class="hint" data-i18n="app.hint.top">右侧面板会保持打开。先选择网页输入框，再点击这里的“开始”。</p>
+  <p id="modeHint" class="hint" data-i18n="app.modeHint">支持普通输入框、iframe 富文本编辑器、Canvas LMS 回复框和 Google 文档。PDF 或绘图区域本身不是输入框。</p>
+  <label for="text" data-i18n="label.text">要输入的文字</label>
+  <textarea id="text" data-i18n-placeholder="placeholder.text" placeholder="在这里粘贴文字…"></textarea>
+  <label for="mode" data-i18n="label.mode">输入模式</label>
+  <select id="mode">
+    <option value="classic" selected data-i18n="mode.classic">常规节奏 · 按设定间隔逐字输入</option>
+    <option value="thinking" data-i18n="mode.thinking">边想边打 · 按句构思、成句输出、回改重写</option>
+  </select>
+
+  <div id="classicPanel" class="panel">
+    <label for="preset" data-i18n="classic.preset">输入节奏预设</label>
+    <select id="preset">
+      <option value="careful" data-i18n="preset.careful">慢速仔细 · 180～420 ms</option>
+      <option value="natural" selected data-i18n="preset.natural">日常输入 · 80～220 ms</option>
+      <option value="fast" data-i18n="preset.fast">熟练快打 · 35～100 ms</option>
+      <option value="custom" data-i18n="preset.custom">自定义</option>
+    </select>
+    <div class="slider">
+      <div class="sliderHead"><label for="min" data-i18n="classic.min">最短间隔</label><output id="minValue">80 毫秒</output></div>
+      <input id="min" type="range" min="20" max="2000" step="10" value="80">
+      <p class="sliderNote" id="minNote" data-i18n="note.empty">填写文字后显示时间估算。</p>
+    </div>
+    <div class="slider">
+      <div class="sliderHead"><label for="max" data-i18n="classic.max">最长间隔</label><output id="maxValue">220 毫秒</output></div>
+      <input id="max" type="range" min="20" max="5000" step="10" value="220">
+      <p class="sliderNote" id="maxNote" data-i18n="note.empty">填写文字后显示时间估算。</p>
+    </div>
+    <label class="option"><input id="punctuation" type="checkbox" checked> <span data-i18n="classic.punctuation">标点、换行停顿</span></label>
+    <label class="option"><input id="rhythm" type="checkbox" checked> <span data-i18n="classic.rhythm">节奏波动：连续输入时略快或略慢</span></label>
+    <div class="slider">
+      <div class="sliderHead"><label for="typoRate" data-i18n="classic.typoRate">错字概率</label><output id="typoRateValue">2%</output></div>
+      <input id="typoRate" type="range" min="0" max="15" step="0.5" value="2">
+      <p class="sliderNote" id="typoRateNote" data-i18n="note.empty">填写文字后显示时间估算。</p>
+    </div>
+    <div class="slider">
+      <div class="sliderHead"><label for="pauseRate" data-i18n="classic.pauseRate">思考停顿概率</label><output id="pauseRateValue">3%</output></div>
+      <input id="pauseRate" type="range" min="0" max="20" step="0.5" value="3">
+      <p class="sliderNote" id="pauseRateNote" data-i18n="note.empty">填写文字后显示时间估算。</p>
+    </div>
+    <p id="classicSummary" data-i18n="classic.summary.empty">预计：填写文字后显示。</p>
+  </div>
+
+  <div id="thinkingPanel" class="panel" hidden>
+    <h2 data-i18n="thinking.title">边想边打</h2>
+    <p class="hint" data-i18n="thinking.hint">像真人一样边想边写：在分句或句末先停下来构思，然后成段快速打出；走到词或分句边界时，有时会回删几个字重写。</p>
+    <div class="slider">
+      <div class="sliderHead"><label for="tBase" data-i18n="thinking.tBase">书写速度</label><output id="tBaseValue">70 毫秒/字</output></div>
+      <input id="tBase" type="range" min="30" max="200" step="5" value="70">
+      <p class="sliderNote" id="tBaseNote" data-i18n="note.empty">填写文字后显示时间估算。</p>
+    </div>
+    <div class="slider">
+      <div class="sliderHead"><label for="tThink" data-i18n="thinking.tThink">构思强度</label><output id="tThinkValue">×1.0</output></div>
+      <input id="tThink" type="range" min="0.4" max="2" step="0.1" value="1">
+      <p class="sliderNote" id="tThinkNote" data-i18n="note.empty">填写文字后显示时间估算。</p>
+    </div>
+    <div class="slider">
+      <div class="sliderHead"><label for="tRevise" data-i18n="thinking.tRevise">回改频率</label><output id="tReviseValue">10%</output></div>
+      <input id="tRevise" type="range" min="0" max="25" step="1" value="10">
+      <p class="sliderNote" id="tReviseNote" data-i18n="note.empty">填写文字后显示时间估算。</p>
+    </div>
+    <div class="slider">
+      <div class="sliderHead"><label for="tMaxRevise" data-i18n="thinking.tMaxRevise">单次回改上限</label><output id="tMaxReviseValue">5 字</output></div>
+      <input id="tMaxRevise" type="range" min="1" max="12" step="1" value="5">
+      <p class="sliderNote" id="tMaxReviseNote" data-i18n="note.empty">填写文字后显示时间估算。</p>
+    </div>
+    <div class="slider">
+      <div class="sliderHead"><label for="tTypo" data-i18n="thinking.tTypo">错字概率</label><output id="tTypoValue">1%</output></div>
+      <input id="tTypo" type="range" min="0" max="10" step="0.5" value="1">
+      <p class="sliderNote" id="tTypoNote" data-i18n="note.empty">填写文字后显示时间估算。</p>
+    </div>
+    <div class="slider">
+      <div class="sliderHead"><label for="tLate" data-i18n="thinking.tLate">延迟发现概率</label><output id="tLateValue">3%</output></div>
+      <input id="tLate" type="range" min="0" max="15" step="1" value="3">
+      <p class="sliderNote" id="tLateNote" data-i18n="note.empty">填写文字后显示时间估算。</p>
+    </div>
+    <div class="slider">
+      <div class="sliderHead"><label for="tDrift" data-i18n="thinking.tDrift">走神长停顿概率</label><output id="tDriftValue">4%</output></div>
+      <input id="tDrift" type="range" min="0" max="15" step="1" value="4">
+      <p class="sliderNote" id="tDriftNote" data-i18n="note.empty">填写文字后显示时间估算。</p>
+    </div>
+    <label class="option"><input id="tBudgetOn" type="checkbox"> <span data-i18n="thinking.budgetOn">总时长预算：让整段文字大致按指定时长打完</span></label>
+    <div class="slider">
+      <div class="sliderHead"><label for="tBudget" data-i18n="thinking.tBudget">目标总时长</label><output id="tBudgetValue">3 分 0 秒</output></div>
+      <input id="tBudget" type="range" min="10" max="7200" step="10" value="180">
+      <p class="sliderNote" id="tBudgetNote" data-i18n="thinking.budgetNote">勾选后按目标时长缩放构思停顿，书写速度不变。</p>
+    </div>
+    <p id="previewSummary" data-i18n="thinking.preview.empty">节奏预览：先填写要输入的文字。</p>
+    <p id="previewWarning" class="warn" hidden></p>
+    <canvas id="preview" width="280" height="42" data-i18n-aria="thinking.preview.aria" aria-label="节奏预览"></canvas>
+    <p class="hint" data-i18n="thinking.legend">蓝色为书写、浅蓝为构思停顿、橙色为回改；预览与真实执行使用同一份规划器。</p>
+  </div>
+
+  <p class="hint" data-i18n="hint.clean">输入前自动清除隐藏字符和其他符号，只保留字母、数字、可见标点、普通空格及换行；清洗结果会显示在上方文本框。</p>
+  <button id="pick" data-i18n="button.pick">① 选择网页输入框</button>
+  <button id="enableDocs" hidden data-i18n="button.enableDocs">启用 Google 文档模式（授予调试器权限）</button>
+  <div id="resumePanel" class="panel" hidden>
+    <h2 data-i18n="resume.title">检测到已经输入过的开头</h2>
+    <p id="resumeMessage" class="hint">—</p>
+    <div class="row">
+      <button id="resumeContinue" data-i18n="button.resumeContinue">从检测到的位置继续</button>
+      <button id="resumeRestart" data-i18n="button.resumeRestart">从头输入</button>
+    </div>
+  </div>
+  <div class="row"><button id="start" disabled data-i18n="button.start">② 开始输入</button><button id="stop" data-i18n="button.stop">停止</button></div>
+  <div class="progressRow">
+    <div id="progressTrack" class="progressTrack" role="progressbar" data-i18n-aria="progress.aria" aria-label="输入进度"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div id="progressFill" class="progressFill"></div>
+    </div>
+    <span id="progressLabel" class="progressLabel" data-i18n="progress.idle">0.00% · 等待开始</span>
+  </div>
+  <p id="status" role="status" aria-live="polite" data-i18n="status.idle">请先点击“选择网页输入框”，再点击网页中要输入的位置。</p>
+  <p class="hint" data-i18n="hint.progress">进度按“距离结尾还有多少时间”计算，边想边打用的是计划里真实的等待时间。</p>
+  <p class="hint" data-i18n="hint.usage">支持普通文本框。回到网页后可按 Esc 停止；手动输入或切换输入框也会停止。边想边打若在回改途中停止，可能有未补回的文字，需要手动检查。</p>
+  <script src="i18n.js"></script>
+  <script src="sanitize.js"></script>
+  <script src="thinking.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

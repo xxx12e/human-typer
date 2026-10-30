@@ -1,0 +1,15 @@
+# 忽略构建产物与本地环境
+dist/
+node_modules/
+*.log
+
+# 本地测试产生的浏览器配置与临时目录
+test-profile-*/
+docs-test-*/
+.docs-test-ext-*/
+
+# 编辑器与系统文件
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

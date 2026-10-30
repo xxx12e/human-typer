@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "Human Typer",
+    "description": "Extension name"
+  },
+  "extDesc": {
+    "message": "Types text into web fields at a set rhythm, with composing pauses, revisions and resume support.",
+    "description": "Short description shown in extension management and store listings"
+  },
+  "actionTitle": {
+    "message": "Open the typing side panel",
+    "description": "Toolbar tooltip"
+  }
+}
