@@ -8,7 +8,6 @@
       'app.name': '人类打字模拟器',
       'app.hint.top': '右侧面板会保持打开。先选择网页输入框，再点击这里的“开始”。',
       'app.modeHint': '支持普通输入框、iframe 富文本编辑器、Canvas LMS 回复框和 Google 文档。PDF 或绘图区域本身不是输入框。',
-      'app.lang.switch': 'EN',
       'app.lang.title': '切换界面语言',
 
       'label.text': '要输入的文字',
@@ -250,7 +249,6 @@
       'app.name': 'Human Typer',
       'app.hint.top': 'The side panel stays open. Pick a field on the page first, then press Start here.',
       'app.modeHint': 'Works with text inputs, iframe rich-text editors, Canvas LMS reply boxes and Google Docs. PDFs and canvases are not input fields.',
-      'app.lang.switch': '中文',
       'app.lang.title': 'Switch interface language',
 
       'label.text': 'Text to type',
@@ -495,8 +493,9 @@
     if (value.startsWith('en')) return 'en';
     return LANGUAGES.includes(value) ? value : null;
   };
+  // 只有中文浏览器默认显示中文；其他语言（德语、日语等）一律回退到英文。
   const detect = (preferred) => normalize(preferred) ||
-    normalize(globalThis.navigator?.language) || 'zh';
+    normalize(globalThis.navigator?.language) || 'en';
   function translate(lang, key, params) {
     const table = STRINGS[normalize(lang) || 'zh'];
     const template = table[key] ?? STRINGS.zh[key] ?? key;

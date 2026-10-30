@@ -17,7 +17,10 @@
     .row { display: flex; gap: 12px; margin: 12px 0; align-items: center; }
     .row label { flex: 1; }
     button { padding: 9px 14px; border: 0; border-radius: 7px; font: inherit; cursor: pointer; }
-    #langToggle { flex: none; padding: 4px 10px; font-size: 12px; line-height: 1.4; border-radius: 999px; background: #e0e6ef; color: #19243b; }
+    #langToggle { flex: none; display: inline-flex; padding: 2px; gap: 2px; border: 2px solid #245ad7; border-radius: 999px; background: white; box-shadow: 0 0 0 3px rgba(36, 90, 215, .15); }
+    #langToggle span { padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; line-height: 1.4; color: #245ad7; }
+    #langToggle span.on { background: #245ad7; color: white; }
+    #langToggle:hover { box-shadow: 0 0 0 4px rgba(36, 90, 215, .28); }
     #start { background: #245ad7; color: white; flex: 1; }
     #stop { background: #e0e6ef; color: #19243b; }
     #resumePanel { border-color: #f0c987; background: #fffaf0; }
@@ -51,8 +54,8 @@
 </head>
 <body>
   <div class="appHead">
-    <h1><span data-i18n="app.name">人类打字模拟器</span> <small>1.1.0</small></h1>
-    <button id="langToggle" type="button" data-i18n="app.lang.switch" data-i18n-title="app.lang.title" title="切换界面语言">EN</button>
+    <h1><span data-i18n="app.name">人类打字模拟器</span> <small id="version"></small></h1>
+    <button id="langToggle" type="button" data-i18n-title="app.lang.title" data-i18n-aria="app.lang.title" title="切换界面语言"><span data-lang="zh">中文</span><span data-lang="en">EN</span></button>
   </div>
   <p class="hint" data-i18n="app.hint.top">右侧面板会保持打开。先选择网页输入框，再点击这里的“开始”。</p>
   <p id="modeHint" class="hint" data-i18n="app.modeHint">支持普通输入框、iframe 富文本编辑器、Canvas LMS 回复框和 Google 文档。PDF 或绘图区域本身不是输入框。</p>

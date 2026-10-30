@@ -3,7 +3,7 @@
 开发者后台：<https://chrome.google.com/webstore/devconsole> → 左上「+ 新建项」。
 下面按后台左侧的标签页顺序，逐项给出要填的内容。文案原文都在 [listing.md](listing.md)。
 
-文件位置（相对仓库上一级目录 `ze/`）：
+要上传的文件全部复制到了 `ze/store-assets/upload/` 这一个文件夹里，选文件时直接进这个文件夹即可。原始位置（相对仓库上一级目录 `ze/`）：
 
 | 文件 | 路径 |
 | --- | --- |

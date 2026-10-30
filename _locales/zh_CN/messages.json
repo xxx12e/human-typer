@@ -1,10 +1,10 @@
 {
   "extName": {
-    "message": "人类打字模拟器",
+    "message": "人类打字模拟器 (Human Typer)",
     "description": "扩展名称"
   },
   "extDesc": {
-    "message": "在网页输入框里按设定节奏逐字输入文字，支持构思停顿、回改与续打。",
+    "message": "模拟人类打字：把文字按设定节奏逐字输入网页输入框，带构思停顿、回改、断点续打，时长参数可调，支持 Google 文档，完全免费。",
     "description": "扩展简介，用于扩展管理与商店列表"
   },
   "actionTitle": {

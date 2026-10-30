@@ -30,7 +30,7 @@ test('同一键的占位符一致', () => {
 });
 
 test('英文文案不残留中文', () => {
-  const allowed = new Set(['app.lang.switch']);
+  const allowed = new Set();
   for (const [key, value] of Object.entries(en)) {
     if (allowed.has(key)) continue;
     assert.ok(!cjk.test(value), `英文文案含中文：${key} → ${value}`);
@@ -53,7 +53,7 @@ test('面板与代码里引用的键都存在', () => {
 test('语言探测与回退', () => {
   assert.equal(i18n.detect('zh-CN'), 'zh');
   assert.equal(i18n.detect('en-US'), 'en');
-  assert.equal(i18n.detect('fr'), 'zh');
+  assert.equal(i18n.detect('fr'), 'en', '非中英文浏览器回退到英文');
   assert.equal(i18n.normalize('EN'), 'en');
   assert.equal(i18n.translate('en', 'progress.left', { percent: '12.34', time: '1.00s' }), '12.34% · 1.00s left');
   assert.equal(i18n.translate('zh', 'progress.left', { percent: '12.34', time: '1.00 秒' }), '12.34% · 剩余 1.00 秒');

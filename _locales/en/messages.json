@@ -1,10 +1,10 @@
 {
   "extName": {
-    "message": "Human Typer",
+    "message": "Human Typer (人类打字模拟器)",
     "description": "Extension name"
   },
   "extDesc": {
-    "message": "Types text into web fields at a set rhythm, with composing pauses, revisions and resume support.",
+    "message": "Human typing simulator: types text into any web field letter by letter, with pauses, revisions, resume and Google Docs support.",
     "description": "Short description shown in extension management and store listings"
   },
   "actionTitle": {

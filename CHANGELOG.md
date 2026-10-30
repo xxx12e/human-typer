@@ -1,5 +1,16 @@
 # 更新记录 / Changelog
 
+## 1.1.1
+
+- 右上角语言切换改成高亮的「中文 | EN」双段按钮，当前语言实心显示，一眼就能找到
+  The language switch in the top-right is now a highlighted 中文 | EN pill; the active language is filled
+- 浏览器语言既不是中文也不是英文时（德语、日语等），面板默认显示英文，不再回退到中文
+  Browsers in other languages (German, Japanese, …) now default to English instead of Chinese
+- 清单默认语种改为英文，扩展名改为中英双语：人类打字模拟器 (Human Typer)
+  Default manifest locale is now English; the extension name is bilingual: Human Typer (人类打字模拟器)
+- 面板标题旁的版本号改为从清单读取
+  The version next to the panel title is read from the manifest
+
 ## 1.1.0
 
 - 侧边栏新增语言切换按钮，一键在中文与英文之间切换，选择会被记住

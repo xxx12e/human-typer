@@ -6,6 +6,7 @@ const i18n = globalThis.__typerI18n;
 const LANG_KEY = 'uiLang';
 let lang = i18n.detect(localStorage.getItem(LANG_KEY));
 const t = (key, params) => i18n.translate(lang, key, params);
+byId('version').textContent = chrome.runtime.getManifest().version;
 function applyLanguage() {
   document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
   document.title = t('app.name');
@@ -17,8 +18,9 @@ function applyLanguage() {
     node.setAttribute('aria-label', t(node.dataset.i18nAria));
   }
   for (const node of document.querySelectorAll('[data-i18n-title]')) node.title = t(node.dataset.i18nTitle);
-  byId('langToggle').textContent = t('app.lang.switch');
-  byId('langToggle').title = t('app.lang.title');
+  for (const node of byId('langToggle').querySelectorAll('[data-lang]')) {
+    node.classList.toggle('on', node.dataset.lang === lang);
+  }
   byId('start').textContent = thinkingMode() ? t('button.startThinking') : t('button.start');
   paintSliderValues();
   if (!activeState || !['running', 'done', 'stopped', 'error'].includes(activeState.phase)) {

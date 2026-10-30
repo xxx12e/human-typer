@@ -4,11 +4,11 @@ Chrome Web Store 与 Edge Add-ons 共用以下文案。提交前把占位符换�
 
 ## 基本信息
 
-- 名称：人类打字模拟器 / Human Typer
+- 名称（取自 `_locales`）：人类打字模拟器 (Human Typer) / Human Typer (人类打字模拟器)
 - 短描述（≤132 字符，Chrome）：
-  `在网页输入框里按设定节奏逐字输入文字。支持构思停顿、回改与断点续打，可写入普通输入框和 Google 文档。`
+  `模拟人类打字：把文字按设定节奏逐字输入网页输入框，带构思停顿、回改、断点续打，时长参数可调，支持 Google 文档，完全免费。`
 - 短描述（English，≤132 字符）：
-  `Types text into web fields at a set rhythm, with composing pauses, revisions and resume. Works in plain fields and Google Docs.`
+  `Human typing simulator: types text into any web field letter by letter, with pauses, revisions, resume and Google Docs support.`
 - 分类：生产工具 / Productivity
 - 语言：简体中文、English（界面内一键切换；扩展名称与简介随浏览器语言）
 - 支持网址：`https://github.com/xxx12e/human-typer/issues`
@@ -17,7 +17,7 @@ Chrome Web Store 与 Edge Add-ons 共用以下文案。提交前把占位符换�
 ## 详细描述
 
 ```
-人类打字模拟器把文字按设定节奏逐字输入到你选择的网页输入框里，适合长文录入、录制演示、批量填写自己表单等场景。
+人类打字模拟器（Human Typer）模拟人类打字节奏，把文字逐字输入到你选择的网页输入框里，适合长文录入、录制演示、批量填写自己表单等场景。
 
 完全免费
 没有付费版、没有内购、没有广告，也不需要注册账号。
@@ -45,7 +45,7 @@ Google 文档
 所有代码在本地运行，不联网、不上传任何文字，不读取整页内容，也不包含分析或广告代码。
 
 界面语言
-侧边栏标题右侧有一个语言按钮，点一下就能在中文与英文之间切换，设置会被记住；首次打开时跟随浏览器语言。
+侧边栏右上角有高亮的「中文 | EN」切换按钮，点一下就能切换，设置会被记住；首次打开时中文浏览器显示中文，其他语言显示英文。
 
 说明
 本扩展通过浏览器事件输入文字，不是物理键盘硬件信号。网页仍可修改接收到的内容或拒绝输入事件；检测到页面内容、光标或目标发生变化时会立即停止。
@@ -54,7 +54,7 @@ Google 文档
 ## Detailed description (English)
 
 ```
-Human Typer types text into the web field you pick, character by character, at a rhythm you choose. It suits long-form entry, screen recordings and filling in your own forms.
+Human Typer (人类打字模拟器) is a human typing simulator: it types text into the web field you pick, character by character, at a rhythm you choose. It suits long-form entry, screen recordings and filling in your own forms.
 
 Completely free
 No paid tier, no in-app purchases, no ads, no account needed.
@@ -82,7 +82,7 @@ Privacy
 Everything runs locally. No network requests, no uploaded text, no page-wide reading, no analytics or ads.
 
 Language
-A button next to the panel title switches between Chinese and English, and the choice is remembered. The first launch follows the browser locale.
+A highlighted 中文 | EN switch in the top-right corner changes the language in one click, and the choice is remembered. Chinese browsers start in Chinese; every other language starts in English.
 
 Note
 Input is delivered through browser events, not hardware keyboard signals. A page can still alter or reject what it receives; the run stops as soon as the text, caret or target changes.
