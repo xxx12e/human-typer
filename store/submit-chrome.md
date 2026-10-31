@@ -57,7 +57,7 @@ Types text that the user provides into the web field the user picks, at a rhythm
 | `scripting` | `Injects the typing engine into the tab and iframes the user picked, after the user presses "Pick a field". No other pages are touched.` |
 | `sidePanel` | `The control panel is a native side panel so it stays open while the user clicks on the page to pick a field.` |
 | 主机权限 `<all_urls>` | `The user may type into a field on any site, including rich-text editors inside cross-origin iframes, so the target cannot be limited to a fixed list of hosts. The extension only acts on the field the user clicks and does not read whole pages.` |
-| `debugger`（可选权限） | `Optional. Used only by Google Docs mode: the Docs editor is a canvas, so individual key events have to be sent through the debugging protocol. It is requested only when the user turns on Docs mode and is detached as soon as the run ends. Plain web fields never use it.` |
+| `debugger` | `Used only by Google Docs mode: the Docs editor is drawn by the page, so individual key events have to be sent through the debugging protocol. It is attached only while typing into a Google Doc the user picked and detached as soon as the run ends. Plain web fields never use it.` |
 
 **远程代码**：选「否，我不使用远程代码」。
 

@@ -1,6 +1,6 @@
 {
   "name": "human-typer",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "private": true,
   "description": "Browser side panel extension that types text into web fields at a set rhythm",
   "license": "MIT",

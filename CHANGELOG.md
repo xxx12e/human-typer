@@ -1,5 +1,18 @@
 # 更新记录 / Changelog
 
+## 1.2.0
+
+- 修复 Google 文档模式无法启用：浏览器不允许 `debugger` 作为可选权限，点「启用」没有任何反应。现在改为安装时申请，进入文档直接可用
+  Fixed Google Docs mode never enabling: browsers reject `debugger` as an optional permission. It is now a regular permission
+- 新增「一键去除水印」按钮：转一下即清洗文字并写回文本框，显示处理了几处，随后按钮变成「复制文字」
+  New "Remove watermarks" button: cleans the text in place, reports how many characters were fixed, then turns into "Copy text"
+- 去水印更彻底：混在英文单词里的西里尔／希腊同形字母还原成普通字母，全角字母数字还原成半角
+  Look-alike Cyrillic/Greek letters inside English words and full-width letters/digits are restored
+- 看到什么就输入什么：键盘上的 ASCII 符号（`$ + = < >` 等）和货币符号不再被删掉
+  Keyboard ASCII symbols and currency signs are no longer dropped
+- 文案补充支持范围：富文本编辑器（含 Canvas LMS 讨论与回复框）与 Google 文档
+  Copy now lists where it works: rich-text editors (including Canvas LMS) and Google Docs
+
 ## 1.1.1
 
 - 右上角语言切换改成高亮的「中文 | EN」双段按钮，当前语言实心显示，一眼就能找到

@@ -225,7 +225,7 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
       if (typeof o.text !== 'string' || !o.text) throw new Error(T('docs.error.settings'));
       const cleaned = HumanTextSanitizer.sanitize(o.text);
       o = { ...o, text: cleaned.text,
-        sanitizedCount: (o.sanitizedCount || 0) + cleaned.removed + cleaned.replacedSpaces };
+        sanitizedCount: (o.sanitizedCount || 0) + cleaned.removed + cleaned.replacedSpaces + (cleaned.normalized || 0) };
       if (!o.text) throw new Error(T('docs.error.empty'));
       const skip = resumeSkip(o);
       const remaining = graphemes(o.text).slice(skip).join('');
@@ -239,12 +239,11 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
           o.pauseRate < 0 || o.pauseRate > 20) throw new Error(T('docs.error.settings'));
       const cleaned = HumanTextSanitizer.sanitize(o.text);
       o = { ...o, text: cleaned.text,
-        sanitizedCount: (o.sanitizedCount || 0) + cleaned.removed + cleaned.replacedSpaces };
+        sanitizedCount: (o.sanitizedCount || 0) + cleaned.removed + cleaned.replacedSpaces + (cleaned.normalized || 0) };
       if (!o.text) throw new Error(T('docs.error.empty'));
       const skip = resumeSkip(o);
       if (!graphemes(o.text).slice(skip).length) throw new Error(T('docs.error.alreadySent'));
     }
-    if (!(await chrome.permissions.contains({ permissions: ['debugger'] }))) throw new Error(T('docs.error.permission'));
     const fullChars = graphemes(o.text);
     const skip = resumeSkip(o);
     const chars = plan ? plan.chars : fullChars.slice(skip);

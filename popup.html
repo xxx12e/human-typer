@@ -23,6 +23,16 @@
     #langToggle:hover { box-shadow: 0 0 0 4px rgba(36, 90, 215, .28); }
     #start { background: #245ad7; color: white; flex: 1; }
     #stop { background: #e0e6ef; color: #19243b; }
+    .cleanRow { display: flex; align-items: center; gap: 10px; margin: 6px 0 2px; flex-wrap: wrap; }
+    #cleanText { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 13px; font-weight: 600; background: #e8f7ee; color: #166534; border: 1px solid #86d7a5; }
+    #cleanText:not(.copy):hover:not(:disabled) { background: #d6f1e1; }
+    #cleanText.copy:hover { background: #1d4fc2; }
+    #cleanText.copy { background: #245ad7; color: white; border-color: #245ad7; }
+    #cleanText .spinner { display: none; width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+    #cleanText.working .spinner { display: inline-block; }
+    #cleanText:disabled { opacity: .8; cursor: progress; }
+    #cleanNote { margin: 0; color: #166534; }
+    @keyframes spin { to { transform: rotate(360deg); } }
     #resumePanel { border-color: #f0c987; background: #fffaf0; }
     #resumePanel h2 { color: #92400e; }
     #resumeContinue { background: #245ad7; color: white; flex: 1; }
@@ -34,8 +44,6 @@
     .progressFill.active { background: linear-gradient(90deg, #1f7a45, #46b877); }
     .progressLabel { font-size: 12px; color: #153980; font-variant-numeric: tabular-nums; white-space: nowrap; }
     #pick { width: 100%; background: #dbe6ff; color: #153980; margin-top: 12px; }
-    #enableDocs { width: 100%; background: #f4e3c2; color: #7c4a03; margin-top: 8px; }
-    #enableDocs[hidden] { display: none; }
     button:disabled { opacity: .5; cursor: not-allowed; }
     .hint { color: #50607b; font-size: 12px; }
     .panel { border: 1px solid #d9e1f0; border-radius: 10px; padding: 4px 12px 10px; margin: 12px 0; background: #fbfcff; }
@@ -61,6 +69,10 @@
   <p id="modeHint" class="hint" data-i18n="app.modeHint">支持普通输入框、iframe 富文本编辑器、Canvas LMS 回复框和 Google 文档。PDF 或绘图区域本身不是输入框。</p>
   <label for="text" data-i18n="label.text">要输入的文字</label>
   <textarea id="text" data-i18n-placeholder="placeholder.text" placeholder="在这里粘贴文字…"></textarea>
+  <div class="cleanRow">
+    <button id="cleanText" type="button"><span class="spinner" aria-hidden="true"></span><span id="cleanLabel">一键去除水印</span></button>
+    <span id="cleanNote" class="hint" role="status" aria-live="polite"></span>
+  </div>
   <label for="mode" data-i18n="label.mode">输入模式</label>
   <select id="mode">
     <option value="classic" selected data-i18n="mode.classic">常规节奏 · 按设定间隔逐字输入</option>
@@ -152,7 +164,6 @@
 
   <p class="hint" data-i18n="hint.clean">输入前自动清除隐藏字符和其他符号，只保留字母、数字、可见标点、普通空格及换行；清洗结果会显示在上方文本框。</p>
   <button id="pick" data-i18n="button.pick">① 选择网页输入框</button>
-  <button id="enableDocs" hidden data-i18n="button.enableDocs">启用 Google 文档模式（授予调试器权限）</button>
   <div id="resumePanel" class="panel" hidden>
     <h2 data-i18n="resume.title">检测到已经输入过的开头</h2>
     <p id="resumeMessage" class="hint">—</p>

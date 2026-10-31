@@ -1,6 +1,6 @@
 (() => {
   // This singleton lives in the extension's isolated world for the current page.
-  if (globalThis.__edgeHumanTyper?.version === '1.1.0') return;
+  if (globalThis.__edgeHumanTyper?.version === '1.2.0') return;
   globalThis.__edgeHumanTyper?.stop();
   let active = null;
   let pending = null;
@@ -15,24 +15,62 @@
   const random = (min, max) => min + Math.random() * (max - min);
   // Kept inside this file so an extension reload cannot leave the input engine
   // dependent on a global created by an older, separately injected script.
+  // 与 sanitize.js 保持一致（单独复制一份，避免依赖旧版本注入的全局对象）。
+  const allowed = /[\p{Letter}\p{Number}\p{Punctuation}\p{Currency_Symbol}!-~]/u;
+  const invisible = /[\p{Default_Ignorable_Code_Point}\p{Control}\p{Format}\p{Surrogate}\p{Private_Use}]/u;
+  const latin = /\p{Script=Latin}/u;
+  const homoglyphs = new Map(Object.entries({
+    'а': 'a', 'е': 'e', 'к': 'k', 'о': 'o', 'р': 'p', 'с': 'c',
+    'у': 'y', 'х': 'x', 'і': 'i', 'ј': 'j', 'ѕ': 's', 'ԁ': 'd', 'ԛ': 'q', 'ԝ': 'w', 'һ': 'h', 'ӏ': 'l',
+    'А': 'A', 'В': 'B', 'Е': 'E', 'К': 'K', 'М': 'M', 'Н': 'H', 'О': 'O', 'Р': 'P', 'С': 'C', 'Т': 'T',
+    'У': 'Y', 'Х': 'X', 'І': 'I', 'Ј': 'J', 'Ѕ': 'S', 'Ԁ': 'D', 'Ԛ': 'Q', 'Ԝ': 'W', 'Һ': 'H', 'Ӏ': 'I',
+    'ο': 'o', 'α': 'a', 'ν': 'v', 'ι': 'i', 'κ': 'k', 'ρ': 'p', 'τ': 't', 'υ': 'u', 'χ': 'x',
+    'Α': 'A', 'Β': 'B', 'Ε': 'E', 'Ζ': 'Z', 'Η': 'H', 'Ι': 'I', 'Κ': 'K', 'Μ': 'M', 'Ν': 'N',
+    'Ο': 'O', 'Ρ': 'P', 'Τ': 'T', 'Υ': 'Y', 'Χ': 'X'
+  }));
+  // 只在「拉丁字母为主、夹着同形字母」的单词里替换，真正的俄文、希腊文单词保持不变。
+  function fixWord(word) {
+    if (!latin.test(word)) return { word, count: 0 };
+    let count = 0;
+    const fixed = [...word].map((char) => {
+      if (!homoglyphs.has(char)) return char;
+      count += 1;
+      return homoglyphs.get(char);
+    }).join('');
+    return { word: fixed, count };
+  }
   const sanitize = (value) => {
-    const allowed = /[\p{Letter}\p{Number}\p{Punctuation}]/u;
-    const invisible = /[\p{Default_Ignorable_Code_Point}\p{Control}\p{Format}\p{Surrogate}\p{Private_Use}]/u;
     const source = String(value).replace(/\r\n?/gu, '\n').normalize('NFC');
-    let text = '', removed = 0, replacedSpaces = 0;
-    for (const char of source) {
+    let text = '';
+    let removed = 0;
+    let replacedSpaces = 0;
+    let normalized = 0;
+    for (let char of source) {
       if (char === '\n') { text += char; continue; }
-      if (char === '\t') { text += ' '; replacedSpaces += 1; continue; }
+      if (char === '\t') {
+        text += ' ';
+        replacedSpaces += 1;
+        continue;
+      }
       if (invisible.test(char)) { removed += 1; continue; }
       if (/\p{Separator}/u.test(char)) {
         text += ' ';
         if (char !== ' ') replacedSpaces += 1;
         continue;
       }
+      if (/[０-９Ａ-Ｚａ-ｚ]/u.test(char)) {
+        char = String.fromCharCode(char.charCodeAt(0) - 0xfee0);
+        normalized += 1;
+      }
       if (allowed.test(char)) text += char;
       else removed += 1;
     }
-    return { text, removed, replacedSpaces };
+    text = text.replace(/[\p{Letter}\p{Mark}]+/gu, (word) => {
+      const result = fixWord(word);
+      normalized += result.count;
+      return result.word;
+    });
+    return { text, removed, replacedSpaces, normalized };
   };
   const neighbors = {
     q: 'wa', w: 'qase', e: 'wsdr', r: 'edft', t: 'rfgy', y: 'tghu', u: 'yhji',
@@ -281,7 +319,7 @@
     stop();
     const cleaned = sanitize(options.text);
     options = { ...options, text: cleaned.text,
-      sanitizedCount: (options.sanitizedCount || 0) + cleaned.removed + cleaned.replacedSpaces };
+      sanitizedCount: (options.sanitizedCount || 0) + cleaned.removed + cleaned.replacedSpaces + (cleaned.normalized || 0) };
     if (!options.text) return report('error', T('engine.error.noCleanText'));
     const target = focusedElement();
     if (!editable(target)) {
@@ -522,6 +560,6 @@
     } else schedule(random(500, 1000));
     return T('engine.start.return');
   }
-  globalThis.__edgeHumanTyper = { version: '1.1.0', arm, start, startSelected, stop, inspect, setLang,
+  globalThis.__edgeHumanTyper = { version: '1.2.0', arm, start, startSelected, stop, inspect, setLang,
     getState: () => ({ ...state }) };
 })();

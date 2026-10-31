@@ -67,4 +67,4 @@ if (problems.length) {
   console.error(problems.map((line) => `- ${line}`).join('\n'));
   process.exit(1);
 }
-console.log(`自检通过：v${manifest.version}，权限 ${manifest.permissions.join(', ')}，可选权限 ${(manifest.optional_permissions || []).join(', ') || '无'}`);
+console.log(`自检通过：v${manifest.version}，权限 ${manifest.permissions.join(', ')}`);

@@ -12,7 +12,7 @@
 | Chrome Web Store | 审核中 / In review |
 | 源码安装 / From source | [Releases](https://github.com/xxx12e/human-typer/releases) |
 
-关键词 / Keywords：人类打字模拟器、模拟人类打字、自动打字、逐字输入、打字节奏、浏览器打字扩展、human typing simulator, human typer, auto typer, typing simulator, type text letter by letter, Edge extension, Chrome extension
+关键词 / Keywords：人类打字模拟器、模拟人类打字、自动打字、逐字输入、打字节奏、去除文字水印、清除零宽字符、Google 文档自动输入、浏览器打字扩展、human typing simulator, human typer, auto typer, typing simulator, remove text watermark, invisible character remover, type text letter by letter, Edge extension, Chrome extension
 
 <p>
   <img src="docs/images/screenshot-zh.png" alt="人类打字模拟器侧边栏：正在逐字输入，进度条显示剩余时间" width="49%">
@@ -23,7 +23,7 @@
 
 ## 中文
 
-在网页输入框里按设定节奏逐字输入文字的浏览器扩展。侧边栏控制面板，两种节奏可选：固定间隔逐字输入，或按句子构思、成段输出、随手回改的「边想边打」。支持普通输入框、iframe 富文本编辑器和 Google 文档。完全免费：没有付费版、没有内购、没有广告，也不需要注册账号。
+在网页输入框里按设定节奏逐字输入文字的浏览器扩展。侧边栏控制面板，两种节奏可选：固定间隔逐字输入，或按句子构思、成段输出、随手回改的「边想边打」。支持普通输入框、各类富文本编辑器（包括 iframe 里的编辑器，例如 Canvas LMS 讨论与回复框）和 Google 文档，还能一键去除文字里的隐藏字符水印。完全免费：没有付费版、没有内购、没有广告，也不需要注册账号。
 
 ### 功能
 
@@ -61,11 +61,18 @@
 
 **Google 文档**
 
-文档模式通过浏览器调试接口逐字发送真实按键事件：英文字母、数字、标点走 `keydown`/`keyup`（含 Shift 组合），中文等需要输入法提交的字符走输入法提交通道。每个按键之间按计划等待，文档收到的是一个一个键，不是整段插入。调试器权限是可选权限，只有在你主动为文档模式点击启用时才会申请；普通网页输入不需要它。
+文档模式通过浏览器调试接口逐字发送真实按键事件：英文字母、数字、标点走 `keydown`/`keyup`（含 Shift 组合），中文等需要输入法提交的字符走输入法提交通道。每个按键之间按计划等待，文档收到的是一个一个键，不是整段插入。调试器连接只在 Google 文档里输入时建立，任务结束即断开；普通网页输入不使用它。
 
-**自动清理隐藏字符**
+**一键去除文字水印**
 
-输入前统一 NFC，制表符与 Unicode 空格转成普通空格，零宽字符、BOM、方向控制符、控制字符、私用字符、未配对代理项、表情和符号类字符会被删除，只保留字母、数字、可见标点、ASCII 空格和换行。清洗结果会回写到侧边栏文本框，方便开始前检查。
+文本框下方的「一键去除水印」按钮会清洗文字并写回文本框，按钮随后变成「复制文字」，可以直接复制干净的文字。开始输入前也会自动清洗一遍，看到什么就输入什么：
+
+- 删除零宽字符、BOM、方向控制符、Unicode 标签字符、变体选择符、控制字符、私用字符和表情；
+- 混在英文单词里冒充 a、e、o、p、c 等的西里尔／希腊同形字母还原成普通字母（真正的俄文、希腊文单词不动）；
+- 全角字母数字（ＡＢＣ１２３）还原成半角，中文全角标点保留；
+- 制表符和各种特殊空格统一成普通空格；字母、数字、标点、键盘上的 ASCII 符号（`$ + = < >` 等）和货币符号保留。
+
+它处理的是字符层面的水印；靠措辞、用词分布嵌入的统计型水印不属于字符，无法通过清洗字符去除。
 
 ### 界面语言
 
@@ -95,7 +102,7 @@
 | `scripting` | 向用户选择的标签页和 iframe 注入输入引擎 |
 | `sidePanel` | 使用浏览器原生侧边栏作为控制面板 |
 | `host_permissions: <all_urls>` | 允许在任意网站及跨域 iframe 中寻找用户点击的输入框 |
-| `optional_permissions: debugger` | 仅 Google 文档模式使用，启用时单独申请 |
+| `debugger` | 仅在向 Google 文档输入时连接，逐字发送按键，任务结束即断开 |
 
 ### 隐私
 
@@ -114,7 +121,7 @@
 
 ## English
 
-A browser extension that types your text into a web field character by character, at a rhythm you set. The control panel lives in the browser side panel and offers two rhythms: a steady per-character interval, or "think-as-you-type", which composes sentence by sentence, types in bursts and now and then goes back to rewrite. Works with plain inputs, rich-text editors inside iframes, and Google Docs. Completely free: no paid tier, no in-app purchases, no ads, no account needed.
+A browser extension that types your text into a web field character by character, at a rhythm you set. The control panel lives in the browser side panel and offers two rhythms: a steady per-character interval, or "think-as-you-type", which composes sentence by sentence, types in bursts and now and then goes back to rewrite. Works with plain inputs, rich-text editors (including ones inside iframes, such as Canvas LMS discussion and reply boxes) and Google Docs, and removes hidden-character watermarks in one click. Completely free: no paid tier, no in-app purchases, no ads, no account needed.
 
 ### Features
 
@@ -152,11 +159,18 @@ Before starting, the target is checked for text that is already there. If the te
 
 **Google Docs**
 
-Docs mode sends real key events through the browser debugging protocol: letters, digits and punctuation as `keydown`/`keyup` (including Shift), and characters that need an input method (such as Chinese) through the IME commit path. Each key waits as planned, so the document receives one key at a time rather than a pasted block. The debugger permission is optional and is requested only when you turn on Docs mode; plain fields never need it.
+Docs mode sends real key events through the browser debugging protocol: letters, digits and punctuation as `keydown`/`keyup` (including Shift), and characters that need an input method (such as Chinese) through the IME commit path. Each key waits as planned, so the document receives one key at a time rather than a pasted block. The debugger connection is opened only while typing into a Google Doc and closed as soon as the run ends; plain fields never use it.
 
-**Hidden characters cleaned automatically**
+**One-click watermark removal**
 
-Before typing, text is normalised to NFC; tabs and Unicode spaces become plain spaces; zero-width characters, BOMs, direction marks, control and private-use characters, unpaired surrogates, emoji and symbol characters are removed. Only letters, digits, visible punctuation, ASCII spaces and line breaks remain. The cleaned text is written back to the panel so you can check it first.
+The "Remove watermarks" button under the text box cleans the text and writes it back; the button then turns into "Copy text" so you can copy the clean result. Text is also cleaned automatically before typing, so what you see is what gets typed:
+
+- Zero-width characters, BOMs, direction marks, Unicode tag characters, variation selectors, control and private-use characters and emoji are removed.
+- Cyrillic or Greek look-alikes posing as a, e, o, p, c and so on inside English words are restored to plain letters (real Russian or Greek words are left alone).
+- Full-width letters and digits (ＡＢＣ１２３) become half-width; Chinese full-width punctuation is kept.
+- Tabs and special spaces become plain spaces; letters, digits, punctuation, keyboard ASCII symbols (`$ + = < >` …) and currency signs are kept.
+
+This handles character-level watermarks. Statistical watermarks carried by word choice are not characters and cannot be removed by cleaning characters.
 
 ### Interface language
 
@@ -186,7 +200,7 @@ A highlighted **中文 | EN** switch sits in the top-right corner of the panel; 
 | `scripting` | Inject the typing engine into the tab and iframes the user picked |
 | `sidePanel` | Use the native side panel as the control panel |
 | `host_permissions: <all_urls>` | Find the field the user clicks on any site, including cross-origin iframes |
-| `optional_permissions: debugger` | Google Docs mode only; requested when the user enables it |
+| `debugger` | Attached only while typing into a Google Doc to send keystrokes; detached when the run ends |
 
 ### Privacy
 

@@ -20,7 +20,7 @@ const context=vm.createContext({document,HTMLInputElement:Input,HTMLTextAreaElem
 // Simulate an engine left by the previous extension version; no sanitizer global exists.
 context.__edgeHumanTyper={version:'1.6.0',stop(){this.stopped=true}};
 vm.runInContext(fs.readFileSync(path.join(root, 'typist.js'),'utf8'),context);
-assert.equal(context.__edgeHumanTyper.version,'1.1.0');
+assert.equal(context.__edgeHumanTyper.version,'1.2.0');
 context.__edgeHumanTyper.start({text:'A\u200b🙂 B.',min:20,max:20,typoRate:0,pauseRate:0,punctuation:false,rhythm:false,sanitizedCount:0});
 let guard=0;while(queue.length){assert.ok(guard++<50);queue.shift()()}
 assert.equal(target.value,'A B.');

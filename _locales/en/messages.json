@@ -4,7 +4,7 @@
     "description": "Extension name"
   },
   "extDesc": {
-    "message": "Human typing simulator: types text into any web field letter by letter, with pauses, revisions, resume and Google Docs support.",
+    "message": "Human typing simulator: types text letter by letter; strips hidden-character watermarks, works in Google Docs and rich text editors.",
     "description": "Short description shown in extension management and store listings"
   },
   "actionTitle": {

@@ -22,6 +22,7 @@ function applyLanguage() {
     node.classList.toggle('on', node.dataset.lang === lang);
   }
   byId('start').textContent = thinkingMode() ? t('button.startThinking') : t('button.start');
+  paintClean();
   paintSliderValues();
   if (!activeState || !['running', 'done', 'stopped', 'error'].includes(activeState.phase)) {
     byId('status').textContent = t('status.idle');
@@ -361,6 +362,65 @@ byId('tBudgetOn').addEventListener('change', () => schedulePreview());
 byId('punctuation').addEventListener('change', () => { if (!thinkingMode()) schedulePreview(); });
 byId('rhythm').addEventListener('change', () => { if (!thinkingMode()) schedulePreview(); });
 byId('text').addEventListener('input', schedulePreview);
+
+// ---------- 一键去除水印：清洗写回文本框，然后按钮变成「复制」 ----------
+// 开始输入前也会自动清洗；这个按钮让用户先看到结果，并能把干净的文字复制出去。
+let cleanState = 'clean';
+let cleanNote = null;
+function paintClean() {
+  const button = byId('cleanText');
+  button.classList.toggle('working', cleanState === 'working');
+  button.classList.toggle('copy', cleanState === 'copy' || cleanState === 'copied');
+  button.disabled = cleanState === 'working';
+  byId('cleanLabel').textContent = t({ clean: 'clean.button', working: 'clean.working',
+    copy: 'clean.copy', copied: 'clean.copied' }[cleanState]);
+  byId('cleanNote').textContent = cleanNote ? t(cleanNote.key, cleanNote.params) : '';
+}
+function resetClean() {
+  if (cleanState === 'clean' && !cleanNote) return;
+  cleanState = 'clean';
+  cleanNote = null;
+  paintClean();
+}
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const box = byId('text');
+    box.select();
+    return document.execCommand('copy');
+  }
+}
+byId('text').addEventListener('input', resetClean);
+byId('cleanText').addEventListener('click', async () => {
+  const box = byId('text');
+  if (cleanState === 'copy' || cleanState === 'copied') {
+    const copied = await copyText(box.value);
+    cleanState = copied ? 'copied' : 'copy';
+    if (!copied) cleanNote = { key: 'clean.copyFailed' };
+    paintClean();
+    if (copied) setTimeout(() => { if (cleanState === 'copied') { cleanState = 'copy'; paintClean(); } }, 1500);
+    return;
+  }
+  if (!box.value.trim()) {
+    cleanNote = { key: 'clean.empty' };
+    paintClean();
+    return;
+  }
+  cleanState = 'working';
+  cleanNote = null;
+  paintClean();
+  await new Promise((resolve) => setTimeout(resolve, 900));
+  const cleaned = HumanTextSanitizer.sanitize(box.value);
+  const n = cleaned.removed + cleaned.replacedSpaces + (cleaned.normalized || 0);
+  box.value = cleaned.text;
+  saveDraft();
+  schedulePreview();
+  cleanState = 'copy';
+  cleanNote = n ? { key: 'clean.done', params: { n } } : { key: 'clean.none' };
+  paintClean();
+});
 window.addEventListener('resize', schedulePreview);
 
 async function currentTab() {
@@ -463,14 +523,6 @@ byId('pick').addEventListener('click', async () => {
     targetFrame = null;
     const tab = await chrome.tabs.get(tabId);
     targetMode = /^https:\/\/docs\.google\.com\/document\//.test(tab.url || '') ? 'docs' : 'normal';
-    // 调试器权限是可选的：只在用户主动为文档模式启用时申请，避免安装时出现强权限提示。
-    if (targetMode === 'docs' && !(await chrome.permissions.contains({ permissions: ['debugger'] }))) {
-      byId('enableDocs').hidden = false;
-      byId('modeHint').textContent = t('modeHint.docsPermission');
-      status.textContent = t('status.docsPermission');
-      return;
-    }
-    byId('enableDocs').hidden = true;
     byId('modeHint').textContent = targetMode === 'docs' ? t('modeHint.docs') : t('modeHint.normal');
     const injectionTarget = targetMode === 'docs' ? { tabId } : { tabId, allFrames: true };
     // 规划器必须先于输入引擎注入，typist.js 在启动“边想边打”时会读取它。
@@ -488,18 +540,6 @@ byId('pick').addEventListener('click', async () => {
     busy = false;
     byId('pick').disabled = false;
   }
-});
-
-// ---------- 可选权限：Google 文档模式需要调试器 ----------
-byId('enableDocs').addEventListener('click', async () => {
-  // 必须由用户点击触发，授权框才会出现。
-  const granted = await chrome.permissions.request({ permissions: ['debugger'] });
-  if (!granted) {
-    status.textContent = t('status.docsPermissionDenied');
-    return;
-  }
-  byId('enableDocs').hidden = true;
-  status.textContent = t('status.docsPermissionGranted');
 });
 
 // ---------- 续打检测：开始前先看目标里是不是已经写好了开头 ----------
@@ -616,7 +656,7 @@ byId('start').addEventListener('click', async () => {
   try {
     const cleaned = HumanTextSanitizer.sanitize(byId('text').value);
     byId('text').value = cleaned.text;
-    const common = { text: cleaned.text, sanitizedCount: cleaned.removed + cleaned.replacedSpaces, lang };
+    const common = { text: cleaned.text, sanitizedCount: cleaned.removed + cleaned.replacedSpaces + (cleaned.normalized || 0), lang };
     if (!common.text) throw new Error(t('error.noText'));
     let options;
     if (thinkingMode()) {
