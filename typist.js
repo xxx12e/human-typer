@@ -1,6 +1,6 @@
 (() => {
   // This singleton lives in the extension's isolated world for the current page.
-  if (globalThis.__edgeHumanTyper?.version === '1.2.0') return;
+  if (globalThis.__edgeHumanTyper?.version === '1.2.1') return;
   globalThis.__edgeHumanTyper?.stop();
   let active = null;
   let pending = null;
@@ -560,6 +560,6 @@
     } else schedule(random(500, 1000));
     return T('engine.start.return');
   }
-  globalThis.__edgeHumanTyper = { version: '1.2.0', arm, start, startSelected, stop, inspect, setLang,
+  globalThis.__edgeHumanTyper = { version: '1.2.1', arm, start, startSelected, stop, inspect, setLang,
     getState: () => ({ ...state }) };
 })();

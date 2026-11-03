@@ -38,6 +38,18 @@ const keyMap = new Map();
 const SHIFT = { key: 'Shift', code: 'ShiftLeft', vk: 16, shift: false };
 const ENTER = { key: 'Enter', code: 'Enter', vk: 13, shift: false };
 const BACKSPACE = { key: 'Backspace', code: 'Backspace', vk: 8, shift: false };
+const DELETE = { key: 'Delete', code: 'Delete', vk: 46, shift: false };
+const ARROW_LEFT = { key: 'ArrowLeft', code: 'ArrowLeft', vk: 37, shift: false };
+const ARROW_RIGHT = { key: 'ArrowRight', code: 'ArrowRight', vk: 39, shift: false };
+// 文档在段首打出「1. 」「- 」「a) 」这类写法后会自动转成列表，编号不再是正文文字，
+// 换行后文档还会自动补下一个编号，结果变成「2. 2. 」。实测只要打空格时段首已经是编号就会触发，
+// 所以遇到这种段首时先打空格、左移，再把编号打在空格前面，最后右移回到空格之后。
+const LIST_MARKER = /^(?:\d{1,3}[.)]|[A-Za-z][.)]|[ivxlcdmIVXLCDM]{1,6}[.)]|\(\w{1,3}\)|[-*•+>–—])(?=[ \t])/u;
+// 续打记录由后台写入 storage，不依赖侧边栏一直开着；按文档 ID 比对，网址后缀变化（?tab=、#heading=）不影响。
+const docIdOf = (url) => /^https:\/\/docs\.google\.com\/document\/(?:u\/\d+\/)?d\/([^/?#]+)/.exec(url || '')?.[1] || null;
+const saveResume = (job, sent) => chrome.storage.local.set({
+  docsResume: { doc: job.doc, text: job.text, sent: Math.max(0, sent), at: Date.now() }
+}).catch(() => {});
 const graphemes = (value) => typeof Intl.Segmenter === 'function'
   ? Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(String(value)), (item) => item.segment)
   : Array.from(String(value));
@@ -123,14 +135,65 @@ async function runDocs(job, options, chars, plan, total) {
     await guard();
     await chrome.debugger.sendCommand(debuggee, 'Input.insertText', { text });
   };
-  const typeChar = async (char) => {
+  const rawChar = async (char) => {
     if (char === '\n') { await press(ENTER, '\r'); return; }
     const info = keyMap.get(char);
     if (info) { await press(info, char); return; }
     await insert(char);
   };
-  const backspace = () => press(BACKSPACE);
-  const progress = (done, label) => targetCall(job.tabId, 'progress', [skip + done, total, label, timing()]);
+  // typed 记录光标前已经写进文档的内容，只用来判断光标是否在段首；guarded 是提前打在光标后面的那个空格。
+  const typed = graphemes(options.text || '').slice(0, skip);
+  let guarded = null;
+  const lineStart = () => !typed.length || typed[typed.length - 1] === '\n';
+  const dropGuard = async () => {
+    if (!guarded) return;
+    guarded = null;
+    await press(DELETE);
+  };
+  const typeChar = async (char, src) => {
+    if (guarded && src === guarded.src && char === guarded.char) {
+      guarded = null;
+      await press(ARROW_RIGHT);
+      typed.push(char);
+      return;
+    }
+    if (char === '\n') await dropGuard();
+    if (!guarded && (char === ' ' || char === '\t')) {
+      // 编号已经在段首、空格还没打（例如上次正好停在这里再续打）：先退掉编号，按上面的办法重打。
+      const line = typed.slice(typed.lastIndexOf('\n') + 1).join('');
+      const marker = LIST_MARKER.exec(line + char);
+      if (marker && marker[0].length === line.length) {
+        for (let index = 0; index < line.length; index += 1) await backspace();
+        await rawChar(char);
+        await press(ARROW_LEFT);
+        for (const markChar of line) { await rawChar(markChar); typed.push(markChar); }
+        await press(ARROW_RIGHT);
+        typed.push(char);
+        return;
+      }
+    }
+    if (!guarded && lineStart() && char !== '\n') {
+      const marker = LIST_MARKER.exec(chars.slice(src, src + 10).join(''));
+      if (marker) {
+        const space = chars[src + marker[0].length];
+        await rawChar(space);
+        await press(ARROW_LEFT);
+        guarded = { src: src + marker[0].length, char: space };
+      }
+    }
+    await rawChar(char);
+    typed.push(char);
+  };
+  const backspace = async () => {
+    if (guarded && lineStart()) await dropGuard();
+    await press(BACKSPACE);
+    typed.pop();
+  };
+  let savedAt = 0;
+  const progress = (done, label) => {
+    if (Date.now() - savedAt > 1500) { savedAt = Date.now(); saveResume(job, skip + done); }
+    return targetCall(job.tabId, 'progress', [skip + done, total, label, timing()]);
+  };
   try {
     chrome.debugger.onDetach.addListener(detached);
     await chrome.debugger.attach(debuggee, '1.3');
@@ -148,7 +211,7 @@ async function runDocs(job, options, chars, plan, total) {
           await backspace();
           completed = Math.min(completed, step.src);
         } else {
-          await typeChar(step.char);
+          await typeChar(step.char, step.src);
           completed = Math.max(completed, step.src + 1);
         }
         await progress(completed, step.label);
@@ -164,12 +227,12 @@ async function runDocs(job, options, chars, plan, total) {
           const index = letters.indexOf(char.toLowerCase());
           let wrong = letters[(index + (Math.random() < 0.5 ? 1 : 25)) % 26];
           if (char === char.toUpperCase()) wrong = wrong.toUpperCase();
-          await typeChar(wrong);
+          await typeChar(wrong, completed);
           await waitDocs(job, randomDelay(250, 650));
           await backspace();
           await waitDocs(job, randomDelay(100, 260));
         }
-        await typeChar(char);
+        await typeChar(char, completed);
         completed += 1;
         await progress(completed);
         if (completed === chars.length) break;
@@ -189,6 +252,7 @@ async function runDocs(job, options, chars, plan, total) {
     job.detaching = true;
     if (attached) await chrome.debugger.detach(debuggee).catch(() => {});
     chrome.debugger.onDetach.removeListener(detached);
+    await saveResume(job, skip + completed);
     const interrupted = failure || job.cancelled;
     const budget = plan?.budget?.enabled ? T('engine.done.budget', { scale: plan.budget.scale.toFixed(2) }) : '';
     const skipNote = skip ? T('engine.done.skip', { n: skip }) : '';
@@ -248,7 +312,8 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
     const skip = resumeSkip(o);
     const chars = plan ? plan.chars : fullChars.slice(skip);
     if (docsJob) throw new Error(T('docs.error.busy'));
-    const job = { tabId: tab.id, windowId: tab.windowId, cancelled: false, reason: null, wake: null };
+    const job = { tabId: tab.id, windowId: tab.windowId, doc: docIdOf(tab.url), text: o.text,
+      cancelled: false, reason: null, wake: null };
     docsJob = job;
     job.finished = runDocs(job, o, chars, plan, fullChars.length);
     return { ok: true };

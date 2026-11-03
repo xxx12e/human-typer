@@ -493,7 +493,6 @@ function startMonitor(tabId) {
       const state = await readState(tabId);
       if (targetTab !== tabId || busy) return;
       renderState(state);
-      trackDocsRun(state);
       if (!['selecting', 'ready', 'running'].includes(state.phase)) return;
     } catch (error) {
       status.textContent = t('status.connectedLost', { message: error.message });
@@ -560,22 +559,11 @@ function showResume(report, options) {
   byId('resumePanel').hidden = false;
   status.textContent = report.already ? t('resume.status.already') : t('resume.status.matched');
 }
-// Google 文档的正文不可读取，只能依据本扩展上次发送到这篇文档的本地记录判断续打位置。
-// 记录写在侧边栏自己的 localStorage 里（与草稿同一处），因此不需要额外的 storage 权限；
-// 数据来源是面板运行时轮询到的进度，所以面板需要保持打开，这一点本来也是文档模式的使用前提。
-function readDocsResume() {
-  try { return JSON.parse(localStorage.getItem('docsResume') || 'null'); } catch { return null; }
-}
-function writeDocsResume(record) {
-  try { localStorage.setItem('docsResume', JSON.stringify(record)); } catch { /* 存储不可用时只是失去续打提示。 */ }
-}
-let docsRun = null;
-function trackDocsRun(state) {
-  if (!docsRun) return;
-  if (state.phase === 'running') { docsRun.running = true; return; }
-  if (!docsRun.running || !['done', 'stopped', 'error'].includes(state.phase)) return;
-  writeDocsResume({ url: docsRun.url, text: docsRun.text, sent: Math.max(0, state.completed || 0), at: Date.now() });
-  docsRun = null;
+// Google 文档的正文不可读取，只能依据本扩展上次发送到这篇文档的记录判断续打位置。
+// 记录由后台在打字过程中写入 chrome.storage.local，侧边栏中途关掉也不会丢；按文档 ID 比对。
+const docsIdOf = (url) => /^https:\/\/docs\.google\.com\/document\/(?:u\/\d+\/)?d\/([^/?#]+)/.exec(url || '')?.[1] || null;
+async function readDocsResume() {
+  try { return (await chrome.storage.local.get('docsResume')).docsResume || null; } catch { return null; }
 }
 async function inspectDocs(options) {
   const planner = globalThis.__edgeHumanTyperThinking;
@@ -585,12 +573,13 @@ async function inspectDocs(options) {
   const report = { ok: true, total, skip: 0, remaining: total, matched: false, already: false,
     preview: '', next: chars.slice(0, 14).join(''), source: 'docs' };
   const tab = await chrome.tabs.get(targetTab);
-  const stored = readDocsResume();
-  if (!stored || stored.url !== (tab.url || '') || !(stored.sent > 0)) return report;
+  const stored = await readDocsResume();
+  const doc = docsIdOf(tab.url);
+  if (!stored || !doc || stored.doc !== doc || !(stored.sent > 0)) return report;
+  // 只要求已经发出去的那一段没变；后面没打的部分改过也能接着打。
   const previous = split(stored.text || '');
-  if (!previous.length || previous.length > total) return report;
-  if (chars.slice(0, previous.length).join('') !== previous.join('')) return report;
-  const skip = Math.min(stored.sent, total);
+  const skip = Math.min(stored.sent, previous.length, total);
+  if (!skip || chars.slice(0, skip).join('') !== previous.slice(0, skip).join('')) return report;
   return { ...report, skip, remaining: total - skip, matched: skip > 0 && skip < total,
     already: skip >= total, preview: chars.slice(Math.max(0, skip - 14), skip).join(''),
     next: chars.slice(skip, skip + 14).join('') };
@@ -606,10 +595,8 @@ async function inspectTarget(tabId, options) {
 }
 async function startTyping(options, tabId) {
   if (targetMode === 'docs') {
-    const tab = await chrome.tabs.get(tabId);
-    docsRun = { url: tab.url || '', text: options.text, running: false };
     const response = await chrome.runtime.sendMessage({ type: 'docsStart', tabId, options });
-    if (!response?.ok) { docsRun = null; throw new Error(response?.error || t('error.docsStart')); }
+    if (!response?.ok) throw new Error(response?.error || t('error.docsStart'));
   } else {
     if (targetFrame === null) throw new Error(t('error.noTarget'));
     await chrome.scripting.executeScript({

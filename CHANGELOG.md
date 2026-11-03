@@ -1,5 +1,16 @@
 # 更新记录 / Changelog
 
+## 1.2.1
+
+- 修复 Google 文档里「1. 」「- 」「a) 」开头的行被自动转成列表：编号不再被吃掉，换行后也不会出现「2. 2. 」重复编号
+  Fixed Google Docs turning lines that start with "1. ", "- " or "a) " into auto lists, which swallowed the marker and doubled numbers on the next line
+- 修复 Google 文档断点续打认不出上次打到哪里：进度改由后台记录，中途关掉侧边栏也不会丢；按文档 ID 比对，网址后缀变化不影响
+  Fixed Docs resume losing its place: progress is now recorded in the background (closing the side panel no longer loses it) and matched by document ID
+- 续打时只要求已经打出去的那一段没改，后面没打的部分改过也能接着打
+  Resume now only requires the already-sent part to be unchanged
+- 新增 `storage` 权限（无安装提示），仅用于保存上面的续打进度
+  Added the `storage` permission (no install warning), used only for the resume record above
+
 ## 1.2.0
 
 - 修复 Google 文档模式无法启用：浏览器不允许 `debugger` 作为可选权限，点「启用」没有任何反应。现在改为安装时申请，进入文档直接可用

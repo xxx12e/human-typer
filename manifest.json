@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extName__",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "__MSG_extDesc__",
   "default_locale": "en",
   "author": "YG",
-  "permissions": ["activeTab", "scripting", "sidePanel", "debugger"],
+  "permissions": ["activeTab", "scripting", "sidePanel", "debugger", "storage"],
   "host_permissions": ["<all_urls>"],
   "background": { "service_worker": "background.js" },
   "side_panel": { "default_path": "popup.html" },
