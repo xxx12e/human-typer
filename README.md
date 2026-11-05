@@ -2,17 +2,17 @@
 
 [中文](#中文) · [English](#english)
 
-**人类打字模拟器（Human Typer）** 是一个免费、开源的浏览器扩展，模拟人类打字节奏，把你的文字逐字输入到网页输入框里。支持 Microsoft Edge 与 Google Chrome（Manifest V3）。
+**人类打字模拟器（Human Typer）** 是一个免费、开源的浏览器扩展，在几乎任何网站上模拟真实的人类打字：按自然的时间间隔，把你的文字逐字输入到网页输入框里。支持 Microsoft Edge 与 Google Chrome（Manifest V3）。
 
-**Human Typer (人类打字模拟器)** is a free, open-source browser extension that simulates human typing: it types your text into any web field character by character, at a rhythm you set. Works in Microsoft Edge and Google Chrome (Manifest V3).
+**Human Typer (人类打字模拟器)** is a free, open-source browser extension that simulates real human typing on almost any website: it types your text into a web field character by character, with natural timing. Works in Microsoft Edge and Google Chrome (Manifest V3).
 
 | 获取 / Get it | |
 | --- | --- |
 | Microsoft Edge Add-ons | [Human Typer (人类打字模拟器)](https://microsoftedge.microsoft.com/addons/detail/deaniocgmmpfklbgelnfmoeibmmfoegd) |
-| Chrome Web Store | 审核中 / In review |
+| Chrome Web Store | [Human Typer (人类打字模拟器)](https://chromewebstore.google.com/detail/ombpamdjbknoahgnehohcknehihfccbc) |
 | 源码安装 / From source | [Releases](https://github.com/xxx12e/human-typer/releases) |
 
-关键词 / Keywords：人类打字模拟器、模拟人类打字、自动打字、逐字输入、打字节奏、去除文字水印、清除零宽字符、Google 文档自动输入、浏览器打字扩展、human typing simulator, human typer, auto typer, typing simulator, remove text watermark, invisible character remover, type text letter by letter, Edge extension, Chrome extension
+关键词 / Keywords：人类打字模拟器、模拟人类打字、自动打字、逐字输入、打字节奏、去除文字水印、清除零宽字符、Google 文档自动输入、自然打字间隔、模拟打错字、禁止粘贴时输入、浏览器打字扩展、human typing simulator, human typer, auto typer, typing simulator, remove text watermark, invisible character remover, type text letter by letter, natural typing delay, typo simulation, Google Docs auto typer, Edge extension, Chrome extension
 
 <p>
   <img src="docs/images/screenshot-zh.png" alt="人类打字模拟器侧边栏：正在逐字输入，进度条显示剩余时间" width="49%">
@@ -24,6 +24,17 @@
 ## 中文
 
 在网页输入框里按设定节奏逐字输入文字的浏览器扩展。侧边栏控制面板，两种节奏可选：固定间隔逐字输入，或按句子构思、成段输出、随手回改的「边想边打」。支持普通输入框、各类富文本编辑器（包括 iframe 里的编辑器，例如 Canvas LMS 讨论与回复框）和 Google 文档，还能一键去除文字里的隐藏字符水印。完全免费：没有付费版、没有内购、没有广告，也不需要注册账号。
+
+### 亮点
+
+- **几乎任何网站都能用**：普通输入框、富文本编辑器（含 iframe 里的）、Google 文档；不允许粘贴的输入框也能用。
+- **自然的时间间隔**：间隔随机浮动、一阵快一阵慢，标点后多停一下；「边想边打」里分句、句子、段落停得一次比一次久，偶尔走神，越往后越慢。
+- **像真人一样打错、改错**（边想边打）：英文按相邻键打错，中文打成常见错字（的/地、在/再）；有的马上改，有的过几个字才发现；还会回删几个字重写。
+- **时长和参数自己定**：所有参数都是滑动条，开始前就能看到预计总时长；也可以指定整段大约多久打完。
+- **Google 文档按原样输入**：逐字发送真实按键；以「1. 」「- 」「a) 」开头的行不会被自动转成列表。
+- **一键去除文字水印**：清掉零宽字符等隐藏字符，还原冒充英文字母的同形字母，看到什么就输入什么。
+- **随时停下，接着打**：按任意键或点一下鼠标立即停止；下次从断点继续，Google 文档关掉侧边栏也不丢进度。
+- **完全免费，不限次数**：没有付费版、广告、账号和每日字数限制；开源，全部在本地运行。
 
 ### 功能
 
@@ -57,11 +68,11 @@
 
 **断点续打**
 
-点击开始前会检查目标里已有的内容。如果光标前的内容正好是待输入文字的开头，面板会弹出提示，可以「从检测到的位置继续」或「从头输入」。要输入的文字如果已经整段存在于目标中，会提示不必重复。Google 文档正文不可读取，这里改用扩展自己记录的发送进度。
+点击开始前会检查目标里已有的内容。如果光标前的内容正好是待输入文字的开头，面板会弹出提示，可以「从检测到的位置继续」或「从头输入」。要输入的文字如果已经整段存在于目标中，会提示不必重复。Google 文档正文不可读取，这里改用扩展自己记录的发送进度：进度由后台边打边记，中途关掉侧边栏也不会丢，并按文档 ID 匹配，网址后缀变化不影响。
 
 **Google 文档**
 
-文档模式通过浏览器调试接口逐字发送真实按键事件：英文字母、数字、标点走 `keydown`/`keyup`（含 Shift 组合），中文等需要输入法提交的字符走输入法提交通道。每个按键之间按计划等待，文档收到的是一个一个键，不是整段插入。调试器连接只在 Google 文档里输入时建立，任务结束即断开；普通网页输入不使用它。
+文档模式通过浏览器调试接口逐字发送真实按键事件：英文字母、数字、标点走 `keydown`/`keyup`（含 Shift 组合），中文等需要输入法提交的字符走输入法提交通道。每个按键之间按计划等待，文档收到的是一个一个键，不是整段插入。文档会把段首的「1. 」「- 」「a) 」自动转成列表，扩展遇到这种行会先打空格、再把编号补在空格前面，所以这些行会按原样输入。调试器连接只在 Google 文档里输入时建立，任务结束即断开；普通网页输入不使用它。
 
 **一键去除文字水印**
 
@@ -80,7 +91,7 @@
 
 ### 安装
 
-- **商店安装**：Edge 用户直接在 [Edge 加载项商店](https://microsoftedge.microsoft.com/addons/detail/deaniocgmmpfklbgelnfmoeibmmfoegd) 安装；Chrome 版本正在审核。
+- **商店安装**：Edge 用户在 [Edge 加载项商店](https://microsoftedge.microsoft.com/addons/detail/deaniocgmmpfklbgelnfmoeibmmfoegd) 安装，Chrome 用户在 [Chrome 应用商店](https://chromewebstore.google.com/detail/ombpamdjbknoahgnehohcknehihfccbc) 安装。
 - **从源码加载**：
   1. 下载本仓库，或下载 [Release](https://github.com/xxx12e/human-typer/releases) 中的 zip 并解压。
   2. Edge 打开 `edge://extensions`（Chrome 为 `chrome://extensions`），开启「开发人员模式」。
@@ -92,7 +103,7 @@
 1. 在侧边栏填写要输入的文字，选择模式和参数。
 2. 点击「① 选择网页输入框」，再点击网页上要输入的位置。需要 30 秒内完成，按 Esc 取消。
 3. 点击「② 开始输入」。进度条和状态文字会显示当前阶段。
-4. 过程中按 Esc、手动按键、点击其他位置或切换输入框都会停止。
+4. 过程中按任意键（包括 Esc）、点击网页或切换输入框都会立即停止；下次点开始可以从断点继续。
 
 ### 权限说明
 
@@ -103,6 +114,7 @@
 | `sidePanel` | 使用浏览器原生侧边栏作为控制面板 |
 | `host_permissions: <all_urls>` | 允许在任意网站及跨域 iframe 中寻找用户点击的输入框 |
 | `debugger` | 仅在向 Google 文档输入时连接，逐字发送按键，任务结束即断开 |
+| `storage` | 在本地保存 Google 文档续打进度（文档 ID、上次发送的文字、已发送字数） |
 
 ### 隐私
 
@@ -112,7 +124,7 @@
 
 - 支持 `textarea`、`text/search/url/tel` 类型的 `input`、`contenteditable` 富文本正文，以及主页面与跨域 iframe 中的同类元素。
 - 不支持 HTML `<canvas>` 绘图表面、PDF 只读页、密码框和非文本输入类型；Word 网页版等自绘图层编辑器可能需要单独适配。
-- 中文字符不模拟拼音串与候选词窗口，扩展也不模拟鼠标移动和光标移动键。
+- 中文字符不模拟拼音串与候选词窗口，扩展也不模拟鼠标移动；光标移动键只在 Google 文档避开自动列表时用到。
 - 网页可以修改写入的内容或拒绝输入事件；检测到网页改变了文字、光标或目标被移除时会立即停止。
 - 浏览器设置页、扩展商店等受保护页面无法注入脚本；`file://` 页面需要在扩展详情中开启「允许访问文件 URL」。
 - 扩展通过浏览器事件输入，不是物理键盘硬件信号。
@@ -122,6 +134,17 @@
 ## English
 
 A browser extension that types your text into a web field character by character, at a rhythm you set. The control panel lives in the browser side panel and offers two rhythms: a steady per-character interval, or "think-as-you-type", which composes sentence by sentence, types in bursts and now and then goes back to rewrite. Works with plain inputs, rich-text editors (including ones inside iframes, such as Canvas LMS discussion and reply boxes) and Google Docs, and removes hidden-character watermarks in one click. Completely free: no paid tier, no in-app purchases, no ads, no account needed.
+
+### Highlights
+
+- **Works on almost any website**: plain inputs, rich-text editors (including ones in iframes) and Google Docs, even in fields that block pasting.
+- **Natural timing**: intervals drift in faster and slower bursts, with an extra beat after punctuation; in think-as-you-type, clause, sentence and paragraph breaks get progressively longer pauses, with the occasional spaced-out moment and a slight slowdown towards the end.
+- **Mistakes made and fixed like a person** (think-as-you-type): English slips hit a neighbouring key, Chinese slips use common confusions (的/地, 在/再); some are fixed at once, some a few characters later; now and then it backspaces a few characters to rewrite.
+- **Your duration, your settings**: every setting is a slider with the estimated total shown before you start, or set roughly how long the whole text should take.
+- **Google Docs, typed as written**: real keystrokes, one at a time; lines starting with "1. ", "- " or "a) " are not turned into auto lists.
+- **One-click watermark removal**: strips zero-width and other hidden characters and restores look-alike letters, so what you see is what gets typed.
+- **Stop any time, resume later**: any key or click stops the run at once; next time it continues from where it stopped, and Docs progress survives closing the side panel.
+- **Free, no limits**: no paid tier, ads, account or daily word cap; open source and fully local.
 
 ### Features
 
@@ -155,11 +178,11 @@ The bar under the buttons reads like `38.20% · 2m 13.45s left`, to two decimals
 
 **Resume**
 
-Before starting, the target is checked for text that is already there. If the text before the caret matches the opening of what you are about to type, the panel offers to continue from that point or start over. If the whole text is already present, it says so. Google Docs content cannot be read, so the extension uses its own record of what it sent.
+Before starting, the target is checked for text that is already there. If the text before the caret matches the opening of what you are about to type, the panel offers to continue from that point or start over. If the whole text is already present, it says so. Google Docs content cannot be read, so the extension uses its own record of what it sent. That record is kept in the background as it types, survives closing the side panel, and is matched by document ID, so URL suffixes do not matter.
 
 **Google Docs**
 
-Docs mode sends real key events through the browser debugging protocol: letters, digits and punctuation as `keydown`/`keyup` (including Shift), and characters that need an input method (such as Chinese) through the IME commit path. Each key waits as planned, so the document receives one key at a time rather than a pasted block. The debugger connection is opened only while typing into a Google Doc and closed as soon as the run ends; plain fields never use it.
+Docs mode sends real key events through the browser debugging protocol: letters, digits and punctuation as `keydown`/`keyup` (including Shift), and characters that need an input method (such as Chinese) through the IME commit path. Each key waits as planned, so the document receives one key at a time rather than a pasted block. Docs turns a leading "1. ", "- " or "a) " into an auto list, so for those lines the extension types the space first and puts the marker in front of it; they come out exactly as written. The debugger connection is opened only while typing into a Google Doc and closed as soon as the run ends; plain fields never use it.
 
 **One-click watermark removal**
 
@@ -178,7 +201,7 @@ A highlighted **中文 | EN** switch sits in the top-right corner of the panel; 
 
 ### Install
 
-- **From the store**: Edge users can install from [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/deaniocgmmpfklbgelnfmoeibmmfoegd). The Chrome Web Store version is in review.
+- **From the store**: Install from [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/deaniocgmmpfklbgelnfmoeibmmfoegd) or the [Chrome Web Store](https://chromewebstore.google.com/detail/ombpamdjbknoahgnehohcknehihfccbc).
 - **From source**:
   1. Download this repository, or download and unzip the zip from [Releases](https://github.com/xxx12e/human-typer/releases).
   2. Open `edge://extensions` (or `chrome://extensions`) and turn on Developer mode.
@@ -190,7 +213,7 @@ A highlighted **中文 | EN** switch sits in the top-right corner of the panel; 
 1. Enter the text in the side panel and choose a mode and settings.
 2. Click "① Pick a field", then click where you want to type on the page. You have 30 seconds; Esc cancels.
 3. Click "② Start typing". The progress bar and status show the current stage.
-4. Esc, typing by hand, clicking elsewhere or switching fields stops the run.
+4. Any key (including Esc), a click on the page or switching fields stops the run at once; press Start again to continue from where it stopped.
 
 ### Permissions
 
@@ -201,6 +224,7 @@ A highlighted **中文 | EN** switch sits in the top-right corner of the panel; 
 | `sidePanel` | Use the native side panel as the control panel |
 | `host_permissions: <all_urls>` | Find the field the user clicks on any site, including cross-origin iframes |
 | `debugger` | Attached only while typing into a Google Doc to send keystrokes; detached when the run ends |
+| `storage` | Keep the Google Docs resume record locally (document ID, text last sent, characters sent) |
 
 ### Privacy
 
@@ -210,7 +234,7 @@ Everything runs locally: no server, no third-party dependencies, no telemetry, a
 
 - Supports `textarea`, `input` of type `text/search/url/tel`, `contenteditable` rich-text bodies, and the same elements inside cross-origin iframes.
 - Does not support HTML `<canvas>` drawing surfaces, read-only PDF pages, password fields or non-text inputs; editors that draw their own layers (such as Word for the web) may need separate support.
-- Chinese input does not simulate pinyin strings or the candidate window, and the extension does not simulate mouse movement or caret keys.
+- Chinese input does not simulate pinyin strings or the candidate window, and the extension does not simulate mouse movement; caret keys are used only to avoid auto lists in Google Docs.
 - A page can alter what it receives or reject input events; the run stops as soon as the page changes the text, the caret, or removes the target.
 - Protected pages such as browser settings and extension stores cannot be scripted; `file://` pages need "Allow access to file URLs" in the extension details.
 - Input arrives as browser events, not hardware keyboard signals.
