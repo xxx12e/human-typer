@@ -1,5 +1,14 @@
 # 更新记录 / Changelog
 
+## 1.2.2
+
+- 修复断点续打只看光标正前方：已经写好的开头上面还有别的内容、下面还有字，或者点选时光标落在了别处，都认不出来。现在会在整个输入框里找已经写好的部分，继续时先把光标移到它的末尾再接着打
+  Fixed resume only checking right before the caret: it missed the already-typed opening when other text sat above or below it, or the caret was elsewhere. It now searches the whole field and moves the caret to the end of that part before continuing
+- 修复富文本编辑器（如 Canvas）里分了段的内容无法续打：段落、列表项和换行都按换行比较，不换行空格按普通空格比较
+  Fixed resume in rich-text editors (such as Canvas) when the typed part spans paragraphs; paragraphs, list items and line breaks now count as newlines and non-breaking spaces as spaces
+- 修复点选富文本编辑器时点在已有文字上会提示「输入位置尚未就绪」，只有点空白处才能选中
+  Fixed picking a rich-text editor by clicking on existing text, which showed "not ready" unless you clicked blank space
+
 ## 1.2.1
 
 - 修复 Google 文档里「1. 」「- 」「a) 」开头的行被自动转成列表：编号不再被吃掉，换行后也不会出现「2. 2. 」重复编号

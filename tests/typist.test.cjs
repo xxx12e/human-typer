@@ -207,6 +207,32 @@ test('续打检测：无关内容不触发；跳过后只输入剩下的部分�
   assert.ok(s.events.length >= Array.from(text).length - skip);
   assert.ok(s.events.every(([, , value]) => value.startsWith(typed)), '不得删除已经写好的开头');
 });
+test('续打检测：已写好的开头不在光标前（上方有别的内容、下方还有字、光标点在开头）也能找到', () => {
+  const text = '第一段已经打好了。第二段需要继续输入。';
+  const typed = '第一段已经打好了。';
+  const above = '上面原来就有的别的字符\n';
+  const field = above + typed + '\n下面也有别的';
+  for (const at of [0, 3, field.length]) {
+    const report = inspectOf(setup(field, [at, at]), text);
+    assert.equal(report.skip, Array.from(typed).length, `光标在 ${at} 时应找到已写好的开头`);
+    assert.equal(report.matched, true);
+    assert.equal(report.moved, true, '需要移动光标');
+    assert.equal(report.resumeAt, Array.from(above + typed).length, '续打位置在已写好部分的末尾');
+    assert.equal(report.next.startsWith('第二段'), true);
+  }
+  // 光标本来就在已写好部分之后：不移动光标。
+  const plainValue = '别的\n' + typed;
+  assert.equal(inspectOf(setup(plainValue, [plainValue.length, plainValue.length]), text).moved, undefined);
+  // 不换行空格当作普通空格。
+  const opening = 'Hello there, this is the opening line.';
+  const nbsp = setup('Notes\n' + opening.replace(' ', '\u00a0'), [0, 0]);
+  assert.equal(inspectOf(nbsp, opening + ' And this continues.').skip, opening.length);
+  // 整段已经在框里任意位置时提示重复。
+  const whole = '整段文字都已经在框里了，不必重复。';
+  assert.equal(inspectOf(setup('前面\n' + whole + '\n后面', [0, 0]), whole).already, true);
+  // 离光标较远的短巧合（少于 8 个字）不打扰用户。
+  assert.equal(inspectOf(setup('你好世界。\n别的', [0, 0]), '你好世界。今天天气不错。').matched, false);
+});
 test('续打检测：跳过全部内容时拒绝开始，避免重复输入', () => {
   const text = '已经全部输入过的文字。';
   const s = setup(text, [text.length, text.length]);

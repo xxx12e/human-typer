@@ -1,6 +1,6 @@
 (() => {
   // This singleton lives in the extension's isolated world for the current page.
-  if (globalThis.__edgeHumanTyper?.version === '1.2.1') return;
+  if (globalThis.__edgeHumanTyper?.version === '1.2.2') return;
   globalThis.__edgeHumanTyper?.stop();
   let active = null;
   let pending = null;
@@ -115,6 +115,12 @@
     target instanceof HTMLElement && target.isContentEditable;  const editable = (target) => ((target instanceof HTMLTextAreaElement ||
     (target instanceof HTMLInputElement && ['text', 'search', 'url', 'tel'].includes(target.type))) &&
     !target.disabled && !target.readOnly) || richText(target);
+  const editingHost = (target) => {
+    if (!target || !richText(target)) return target;
+    let host = target;
+    while (host.parentElement?.isContentEditable) host = host.parentElement;
+    return host;
+  };
   const targetValue = (target) => richText(target) ? target.innerHTML : target.value;
   const selectedRange = (target) => {
     if (!richText(target)) return null;
@@ -210,6 +216,129 @@
     }
     return { skip: Math.min(skip, chars.length), matched };
   }
+  // 不在光标前的匹配容易撞上巧合（同样的称呼、标题），要求更长一些才提示。
+  const RESUME_MOVE_MIN = 8;
+  const BLOCK_TAG = /^(?:ADDRESS|ARTICLE|ASIDE|BLOCKQUOTE|DD|DIV|DL|DT|FIELDSET|FIGCAPTION|FIGURE|FOOTER|FORM|H[1-6]|HEADER|HR|LI|MAIN|NAV|OL|P|PRE|SECTION|TABLE|TBODY|TD|TFOOT|TH|THEAD|TR|UL)$/;
+  // 与 sanitize 对齐：不可见字符不算字，各种空白（含不换行空格）都按普通空格比较。
+  function unitChar(grapheme) {
+    if (grapheme === '\n') return '\n';
+    const value = grapheme.normalize('NFC');
+    if ([...value].every((char) => invisible.test(char))) return null;
+    if (/^[\t\p{Separator}]$/u.test(value)) return ' ';
+    return value;
+  }
+  // 把整个输入框的内容摊平成一串字，并记下每个字后面的光标位置，用来在任意位置找已经写好的部分。
+  // 富文本里段落、列表项、<br> 都算换行，和逐字输入时按回车产生的结构对应。
+  function fieldUnits(target, isRich) {
+    const units = [];
+    if (!isRich) {
+      let end = 0;
+      for (const grapheme of graphemes(target.value)) {
+        end += grapheme.length;
+        const ch = unitChar(grapheme);
+        if (ch !== null) units.push({ ch, end });
+      }
+      return units;
+    }
+    const view = target.ownerDocument.defaultView;
+    const keepsBreaks = (element) => {
+      try { return /^(?:pre|break-spaces)/u.test(view.getComputedStyle(element).whiteSpace); } catch { return false; }
+    };
+    const meaningful = (node) => node && !(node.nodeType === 3 && !node.data.trim() && node.data.includes('\n'));
+    const nextMeaningful = (node) => {
+      let next = node.nextSibling;
+      while (next && !meaningful(next)) next = next.nextSibling;
+      return next;
+    };
+    // 块里最后一个 <br> 只是占位（空段落或行尾），不产生新的一行。
+    const trailingBreak = (br) => {
+      for (let node = br; node && node !== target && !BLOCK_TAG.test(node.tagName || ''); node = node.parentNode) {
+        if (nextMeaningful(node)) return false;
+      }
+      return true;
+    };
+    let fresh = true;
+    let afterBlock = false;
+    const push = (ch, node, offset, before) => {
+      if (afterBlock && !fresh) units.push({ ch: '\n', node: before.node, offset: before.offset });
+      afterBlock = false;
+      units.push({ ch, node, offset });
+      fresh = ch === '\n';
+    };
+    const walk = (parent) => {
+      for (const child of parent.childNodes) {
+        if (child.nodeType === 3) {
+          const pre = keepsBreaks(child.parentElement || target);
+          if (!pre && !meaningful(child)) continue;
+          let offset = 0;
+          for (const grapheme of graphemes(child.data)) {
+            const start = offset;
+            offset += grapheme.length;
+            const ch = unitChar(grapheme === '\n' && !pre ? ' ' : grapheme);
+            if (ch !== null) push(ch, child, offset, { node: child, offset: start });
+          }
+        } else if (child.nodeType === 1) {
+          const tag = child.tagName;
+          if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'TEMPLATE') continue;
+          const index = Array.prototype.indexOf.call(parent.childNodes, child);
+          if (tag === 'BR') {
+            if (trailingBreak(child)) { fresh = false; afterBlock = false; continue; }
+            push('\n', parent, index + 1, { node: parent, offset: index });
+          } else if (BLOCK_TAG.test(tag)) {
+            if (!fresh && units.length) units.push({ ch: '\n', node: child, offset: 0 });
+            fresh = true;
+            afterBlock = false;
+            walk(child);
+            afterBlock = true;
+          } else walk(child);
+        }
+      }
+    };
+    walk(target);
+    return units;
+  }
+  // 每个位置往后能和待输入文字的开头对上多少个字（Z 算法，线性时间，长文也不卡）。
+  function prefixRuns(field, chars) {
+    const joined = chars.concat([null], field);
+    const z = new Array(joined.length).fill(0);
+    for (let index = 1, left = 0, right = 0; index < joined.length; index += 1) {
+      if (index < right) z[index] = Math.min(right - index, z[index - left]);
+      while (index + z[index] < joined.length && joined[z[index]] === joined[index + z[index]]) z[index] += 1;
+      if (index + z[index] > right) { left = index; right = index + z[index]; }
+    }
+    return z.slice(chars.length + 1);
+  }
+  // 在整个输入框里找最长的「已经写好的开头」；一样长时取最靠后的那一处。
+  function fieldMatch(target, isRich, chars) {
+    const units = fieldUnits(target, isRich);
+    const runs = prefixRuns(units.map((unit) => unit.ch), chars);
+    let size = 0;
+    let at = -1;
+    runs.forEach((run, index) => { if (run && run >= size) { size = run; at = index; } });
+    return { size, end: at + size, units };
+  }
+  // 找到的位置是不是就是现在的光标（富文本跨段时原来的判断认不出，但光标其实已经在对的地方）。
+  function caretAt(target, isRich, unit) {
+    if (!unit) return false;
+    if (!isRich) return target.selectionStart === unit.end && target.selectionEnd === unit.end;
+    const selection = target.ownerDocument.getSelection();
+    if (!selection?.rangeCount || !selection.isCollapsed) return false;
+    const caret = selection.getRangeAt(0);
+    try { return caret.comparePoint(unit.node, unit.offset) === 0; } catch { return false; }
+  }
+  // 继续输入前把光标移到找到的那段文字末尾；先核对末尾几个字还在原处，内容变了就不动。
+  function placeResumeCaret(target, isRich, end, tail) {
+    const units = fieldUnits(target, isRich);
+    const expected = graphemes(String(tail || ''));
+    if (!Number.isInteger(end) || end < 1 || end > units.length || end < expected.length) return false;
+    if (units.slice(end - expected.length, end).map((unit) => unit.ch).join('') !== expected.join('')) return false;
+    const unit = units[end - 1];
+    if (!isRich) { target.setSelectionRange(unit.end, unit.end); return true; }
+    const range = target.ownerDocument.createRange();
+    range.setStart(unit.node, unit.offset);
+    range.collapse(true);
+    return restoreRange(target, range);
+  }
   function inspect(options = {}) {
     const target = focusedElement();
     if (!editable(target)) return { ok: false, reason: T('engine.inspect.noTarget') };
@@ -218,20 +347,20 @@
     const isRich = richText(target);
     const before = caretText(target, isRich, 'before');
     if (before === null) return { ok: false, reason: T('engine.inspect.noCaret') };
-    const { skip } = resumeMatch(before, chars);
     const total = chars.length;
-    const remaining = total - skip;
-    const result = { ok: true, total, skip, remaining, matched: skip >= RESUME_MIN && remaining > 0,
-      already: remaining <= 0, preview: chars.slice(Math.max(0, skip - 14), skip).join(''),
-      next: chars.slice(skip, skip + 14).join(''), source: 'field' };
-    if (skip) return result;
-    // 光标后面已经是要输入的整段文字时，提示用户不要重复输入。
-    const after = caretText(target, isRich, 'after');
-    if (after && after.length >= total && graphemes(after).slice(0, total).join('') === chars.join('')) {
-      return { ...result, skip: total, remaining: 0, matched: false, already: true,
-        preview: chars.slice(-14).join(''), next: '' };
+    const describe = (skip) => ({ ok: true, total, skip, remaining: total - skip,
+      matched: skip >= RESUME_MIN && skip < total, already: skip >= total,
+      preview: chars.slice(Math.max(0, skip - 14), skip).join(''),
+      next: chars.slice(skip, skip + 14).join(''), source: 'field' });
+    // 光标正好停在已经写好的开头后面：沿用原来的判断，不用移动光标。
+    const { skip } = resumeMatch(before, chars);
+    // 光标不在那里（点在了上面别的内容里、下面还有别的字、或富文本分了段）：在整个框里找。
+    const found = fieldMatch(target, isRich, chars);
+    if (found.size > skip && (found.size >= RESUME_MOVE_MIN || found.size >= total)) {
+      return { ...describe(found.size), moved: !caretAt(target, isRich, found.units[found.end - 1]), resumeAt: found.end,
+        resumeTail: chars.slice(Math.max(0, found.size - 24), found.size).join('') };
     }
-    return result;
+    return describe(skip);
   }
 
   function arm(options = null, language = null) {
@@ -252,7 +381,8 @@
     document.addEventListener('click', (event) => {
       if (!event.isTrusted || pending !== selection) return;
       clearTimeout(selection.launch);
-      const target = event.composedPath().find(editable);
+      // 点在富文本里的段落文字上时，事件目标是那个段落；真正获得焦点的是外层的编辑器本身。
+      const target = editingHost(event.composedPath().find(editable));
       if (!target) {
         notice.textContent = T('engine.arm.notEditable');
         report('selecting', notice.textContent);
@@ -311,6 +441,10 @@
     if (choice.rich) {
       if (!restoreRange(choice.target, choice.range)) return report('error', T('engine.error.rangeLost'));
     } else choice.target.setSelectionRange(choice.from, choice.to);
+    if (options?.resumeAt !== undefined && options.skipChars > 0 &&
+        !placeResumeCaret(choice.target, choice.rich, options.resumeAt, options.resumeTail)) {
+      return report('error', T('engine.error.resumeLost'));
+    }
     return start(options);
   }
 
@@ -560,6 +694,6 @@
     } else schedule(random(500, 1000));
     return T('engine.start.return');
   }
-  globalThis.__edgeHumanTyper = { version: '1.2.1', arm, start, startSelected, stop, inspect, setLang,
+  globalThis.__edgeHumanTyper = { version: '1.2.2', arm, start, startSelected, stop, inspect, setLang,
     getState: () => ({ ...state }) };
 })();

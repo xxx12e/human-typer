@@ -548,13 +548,14 @@ function hideResume() {
   pendingStart = null;
 }
 function showResume(report, options) {
-  pendingStart = { options, skip: report.skip };
+  pendingStart = { options, skip: report.skip, resumeAt: report.resumeAt, resumeTail: report.resumeTail };
   const head = report.preview ? `…${report.preview}` : '';
   const next = report.next ? `${report.next}…` : '';
   byId('resumeMessage').textContent = report.already
     ? t('resume.already', { tail: head })
     : t('resume.matched', { skip: report.skip, total: report.total, head, next,
-        source: report.source === 'docs' ? t('resume.source.docs') : t('resume.source.field') });
+        source: report.source === 'docs' ? t('resume.source.docs') : t('resume.source.field') })
+      + (report.moved && !report.already ? ` ${t('resume.moved')}` : '');
   byId('resumeContinue').hidden = report.already;
   byId('resumePanel').hidden = false;
   status.textContent = report.already ? t('resume.status.already') : t('resume.status.matched');
@@ -615,7 +616,8 @@ byId('resumeContinue').addEventListener('click', async () => {
   busy = true;
   byId('start').disabled = true;
   try {
-    await startTyping({ ...pending.options, skipChars: pending.skip }, targetTab);
+    await startTyping({ ...pending.options, skipChars: pending.skip,
+      ...(pending.resumeAt !== undefined ? { resumeAt: pending.resumeAt, resumeTail: pending.resumeTail } : {}) }, targetTab);
   } catch (error) {
     status.textContent = t('error.cannotStart', { message: error.message });
     byId('start').disabled = targetTab === null;
